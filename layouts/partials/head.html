@@ -1,0 +1,30 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="{{ .Description }}">
+  <meta name="keywords" content="{{ delimit .Keywords ", " }}">
+  {{ hugo.Generator }}
+  <!-- css -->
+  <link rel="stylesheet" href="{{ "css/normalize.css" | absURL }}">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  {{ $caymanScss := "scss/cayman.scss" }}
+  {{ $options := (dict "targetPath" "css/cayman.css") }}
+  {{ $caymanCss := resources.Get $caymanScss | resources.ExecuteAsTemplate $caymanScss . | toCSS $options | fingerprint }}
+  <link rel="stylesheet" href="{{ $caymanCss.Permalink }}">
+
+  <!-- custom css -->
+  <link rel="stylesheet" href="{{ "css/custom.css" | absURL }}">
+  <!-- snsicon -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.6/css/all.css">
+  <!-- ogp -->
+  {{ partial "ogp.html" . }}
+  <!-- other -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  {{ partial "katex.html" . }}
+  <title>{{ .Title }} | {{ $.Site.Title }}</title>
+
+</head>
+

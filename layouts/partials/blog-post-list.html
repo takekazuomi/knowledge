@@ -1,0 +1,21 @@
+<h1>{{ .Title }}</h1>
+ 
+{{ range where .Pages.ByPublishDate.Reverse "Section" "post" }}
+
+  <section>
+    <a href="{{ .Permalink }}" style="text-decoration: none;">
+      <div>
+        <img src="{{ .Params.eyecatch }}" width="320" />
+      </div>
+      <div>
+          <h3>{{ .Title }}</h3>
+              {{ .Description }}
+
+            {{ $dateFormat := $.Site.Params.dateFormat | default "Jan 2, 2006" }}
+            {{ .PublishDate.Format $dateFormat }}
+      </div>
+    </a>
+  </section>
+  <hr />
+{{ end }}
+
