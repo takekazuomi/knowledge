@@ -1,180 +1,196 @@
 ---
-title: "Hugoを使いこなす1＝Windows10上にHugo開発環境を構築する"
-date: 2019-04-30T16:53:17+09:00
-tags: [Hugo,Azure]
-description: "Windows10 上にHugo の開発環境を構築する。exeをダウンロードして、テンプレートを選べば即動くのがHugoの楽しいところ。"
+title: "Azure上での PCI DSS 準拠サービスの構築"
+date: 2019-07-08T00:00:00+09:00
+tags: [Azure,PCIDSS]
+description: "求められるサービスのセキュリティとAzure上での PCI DSS Blueprint を元にした準拠サービスの構築"
 keywords:
-  - "Hugo"
-  - "開発環境構築"
-  - "Windows10"
+  - "PCIDSS"
+  - "Azure"
+  - "Blueprint"
 eyecatch: "/images/hugo/hugo.png"
+draft: true
 ---
 
-## 環境構築
+## 概要
 
-Windows10 上にHugo の開発環境を構築する。exeをダウンロードして、テンプレートを選べば即動くのがHugoの楽しいところ。
+<hr/>
+**以下メモ**
 
-### 前提条件
+なにかフリを置く、最後に書くかな。
 
-- Windows10でGitを使える環境にしておく。
-- [Visual Studio Code(VSCode)](https://code.visualstudio.com/)をインストールしておく。
+以下概要
 
+Azure上では概ね道具立ては揃っているので、PaaSなどを使うとオンプレより効率的にセキュアなサービスを構築できる。マネージドサービスを使って行くと良い。
 
-### Hugo（Windows版）のダウンロード
+<hr/>
 
-- 以下のディレクトリからHugoをダウンロードする。
-- 今回はWindows版64bitをダウンロードし、解凍する。
+クラウドのセキュリティは日々進歩しており、現時点でオンプレミスよりメリットがあるものも多い。個別の話をする前に、クラウド
 
-https://github.com/gohugoio/hugo/releases
 
+## クラウドのセキュリティ上の利点
 
-### ディレクトリの作成
+- クラウドでアプリケーションをホスティングすることのセキュリティ上の利点
+- 他のクラウドサービスモデルに対するサービスとしてのプラットフォーム（PaaS）のセキュリティ上の利点を評価
+- セキュリティをネットワーク中心からアイデンティティ中心のセキュリティアプローチに変更
+- 一般的なPaaSセキュリティベストプラクティスの推奨事項を実装
 
-- C:\Hugo フォルダを作成。
-- 解凍した「hugo_バージョン名_Windows-64bit」フォルダをbinという名前に変えて、C:\Hugo\binに配置。
+![Cloud security advantages](https://docs.microsoft.com/en-us/azure/security/media/security-paas-deployments/advantages-of-cloud.png)
 
-![binフォルダ配下](/images/hugo/setting-bin.png)
+ここに、PCI DSSを例にして、Azure上でのセキュアサービスの構築を説明する。
 
+![New PCI DSS Azure Blueprint makes compliance simpler](/images/pcidss/overview.png)
 
-- C:\Hugo\sitesに「sites」フォルダを作成。ここではサイト名を「sigmanyan」とした。
+参考: [Securing PaaS deployments](https://docs.microsoft.com/en-us/azure/security/security-paas-deployments)
 
-![Hugoフォルダ配下](/images/hugo/setting01.png)
+## 第１章 PCI DSS の概要
 
+PCI DSS 3.2 には、セキュアなサービスを構築する上で必要なことのエッセンスが凝縮している。PCI DSSで課題となっているものと対策への要求を現実的なセキュリティへの取り組みを学ぶことができる。
 
-### 環境変数の設定
+もともと、PCI DSSはクレジットカードブランドが、クレジットカード番号を使った決済の手数料でビジネスをするという自分たちのビジネスモデルを守るために策定したセキュリティ基準であることから生まれた結果だ。クレジットカードでの取引がが減るほど非現実的（実装不可能）なセキュリティを要求すると手数料ビジネスという彼らのビジネスモデルが成立しない。また、クレジットカードの信頼性が失われるほど不正利用が増えた場合も同様に利用量が減ることが予想される。この２つの問題を現実的な路線で収束させるのことは、PCI DSS（カウンシル）に期待される役目であり、その基準は社会的な状況によって変動する。
 
-- コマンドプロンプト上でHugoコマンドを使えるようにするために、環境変数を設定する。
-- Windows 10 の検索ウィンドウに「環境変数」と入力し、「システム環境変数の編集」を起動する。
-- PathにC:\Hugo\bin を入力する
+上記のことを踏まえ、現時点でPCI DSSでなにが求められいるのかを解説するので、随時元の規格（PCI DSS)を参照しながら読んで欲しい。
 
-![環境変数の設定](/images/hugo/setting02.png)
+### 序文（要件の前に書いてある部分）
 
+ここには良いことがいろいろ書いてある。
 
-### テーマをダウンロードし、設定する
+「ネットワークセグメンテーションは要件ではないが、ネットワークセグメンテーションを利用すると対象範囲の限定し、評価コスト、PCI DSSコントロールの実施、維持コスト、組織のリスクを低減することができる」とあり、これは多くのシステムに適応できる。PCI DSS曰く、多重防衛の１つとしてネットワークを使うのはコスト的に優れてるのでお勧めというわけ。
 
-- https://themes.gohugo.io/  から好きなテーマを探し、GitHubのパスを控える。
-- 階層下のthemaのフォルダへ移動し、Git経由でテーマをダウンロードする。
+また、「PCI DSSの適応範囲は、PAN（カード会員番号）を扱っている部分。処理は、伝送、処理、保管を現す」。PCI DSSはカード会員番号のセキュリティ基準なのでこうなっているが、Webサイトのセキュリティを考えた場合、守るべく情報を定義することが重要である。
 
-```command
-cd C:\Hugo\sites\themes 
-git clone https://github.com/zwbetz-gh/cayman-hugo-theme.git themes/cayman-hugo-theme
-```
+複数の要求レベルの異なったデータの扱いの明確化、ここでは、「カード会員データとセンシティブ認証データの２つに分けて定義」する旨が記述され、カード会員データ（カード番号、有効期限、カード会員名、サービスコード）は、業務上の必要があれば保存可、センシティブ認証データ
 
-- themeの中身は、丸々一つ上のディレクトリにもコピーし、編集を開始する。
+それ以外にも、「カード会員データの保存、処理または伝送に関するビジネスニーズおよびプロセスを明確にし、データフロー図を使用してカード会員データフローを文書化しろ」など。
 
+ここで全体的に語られているのは、守るべき情報（守秘情報）を定義し、守秘情報のフロー、処理、ビジネス要件を明らかにすることの必要性です。こう考えると、もしかして必要になるかもしれないので、一緒に渡しておくとか、的な考えは守秘情報には適応できない旨を理解してシステム設計をするべきということが言えます。拡張性、柔軟性とは相反する要件とも言えます。
 
-### フォルダ構成を確認する
+このあたりは、全体的なアーキテクチャー上の思想、哲学の部分なので、Azureとはあまり関係ないと思われがちだが、この辺 [Azure Security Documentation](https://docs.microsoft.com/en-us/azure/security/)　見ると出てくる（と思う、詳細は後で）
 
-- 前の手順でthemesをGitから取得し、かつ一つ上のディレクトリにコピーを展開すると、Hugoは以下の通りのフォルダ構成となっている。それぞれ重要な役割があるので覚えておく。
-- themeフォルダから一つ上の階層にコピーすると他のフォルダも作成されている場合がある。
+### 安全なネットワークの構築と維持
 
-```txt
-├── archetypes
-├── assets
-├── config
-├── content
-├── data
-├── layouts
-├── static
-└── themes
-```
+PCI DSS 3.2 では、要件1,2として、ネットワーク分離の話と、ネットワーク機材の適切な設定の要件が記述されている。ネットワーク分離をAzureでどう実装するの話を書く。
 
-- archetypes=新規コンテンツをMarkdownで作る時に利用されるテンプレート。記事のタイトルやタグ等のメタ情報やユーザー定義情報を事前定義する。
-- assets=Sass等を格納し、静的コンテンツ生成時にパイプライン経由でコンパイルする。
-- config=「_default」「production」 のフォルダを作り、それぞれにConfig関連のファイル(config.toml)を配置して、環境を分ける。
-- content=Markdown形式の記事ファイルをを格納する。階層構造にしてもよい。
-- data=データを動的に使う場合、格納する(今回の例では使用していない)。
-- layouts=レイアウトを格納する。themesで指定したテーマを上書きするものについて配置する。※直接themesフォルダはいじらないようにする。
-- static=静的コンテンツファイルを格納する。imagesやpdfフォルダを作ってコンテンツ運用すればサイトの直下にコピーされる。
-- themes=Gitからダウンロードしたテーマ。ダウンロード元は直接編集をしないため、こちらに格納しておく。
+- 要件1：カード会員データを保護するために、ファイアウォールをインストールして構成を維持する
+- 要件2：システムパスワードおよびその他のセキュリティパラメータにベンダ提供のデフォルト値を使用しない
 
+分離には、下記３つのテクノロジを利用する。
 
-### 静的ファイルの使い方
+1. Subnet +Network Security Group
+2. App ServiceのSandbox
+3. Firewall/ Virtual Network Service Endpoints
 
-- staticフォルダ配下にimagesフォルダやpdfフォルダを作り、画像ファイルやPDFファイルを配置する。
-- ここに配置したファイルは　hostname/images/yourimage.jpg というようにルートに配置される。
+最初の方法は、仮想ネットワークをサブネットに分割しサブネットへのアクセスをNetwork Security Groupで制限することでネットワークをセグメント化する。セグメント化されたネットワークにコンポーネントを配置することで通信を制限し、通信を暗号化することでCDE の入出力を保護する。N-1からN-7までの各サブネットでは本方式を分離に利用した。
 
+2つ目の方法は、カード会員WEB、担当者画面、バッチ（WebJob）の分離に使用されている。これらは、各App ServiceとしてSandboxで実行される。
 
-### 記事を作成し、表示する。
+3つ目は、SQL Database/Azure Storageなどのマネージド・サービスのアクセス制御で利用される。N-8のSQL Databaseのアクセスは、SQL DatabaseのFirewallで特定のVNetからのアクセスのみを許可する設定としている。
 
-- 今回は、contents/post配下に記事を作成していく。
-- ただし、URLは http://localhost/testarticle1/  というように直下にコンテンツを作成していく。
+また、Webアプリケーションへのアクセスは、Application Gateway（WAF）経由とし既知の脆弱性の問題を軽減する。本システムを構成するカード会員WEBと担当者画面の２つのWebアプリケーションは、専用サーバーと仮想ネットワークへの配置という観点からApp Service Environment を利用する。２つのWebアプリケーションは、App Service のPaaS isolationによって分離され、相互に直接のやりとりを禁止する。
 
-```command
-hugo new post/test_category/testarticle1.md
-```
+カード会員WEBと担当者画面では、本システム外からのHTTPS トラフィックは、カスタム ドメインの SSL 証明書を使用する。Log Analytics が、広範にわたる変更のログ記録を提供することで、変更内容の確認、検証を可能とし設定の正確性を確保する。
 
-http://localhost:1313/testarticle1/ でコンテンツが表示される。
+Blueprintを元に、追加のドキュメントとして、[Azure network security](https://docs.microsoft.com/en-us/azure/security/abstract-azure-network-security) を絡めて書く。
 
+このあたりは、構成を考える。
 
-### Configの設定
+### カード会員データの保護
 
-- configフォルダ配下に　_default と production フォルダを用意する。
-- それぞれの配下に config.toml を作成する。
-- config.toml 内でpublishDir の値を _default production でそれぞれ設定する。
-- 各configでbaseURLをそれぞれ設定しておき環境を使い分ける。
+- 要件3：保存されたカード会員データを保護する
+- 要件4：オープンな公共ネットワーク経由でカード会員データを伝送する場合、暗号化する
 
-```toml
-publishDir = "public/dev"
-publishDir = "public/production"
+要件1,2は、暗号化の話は、鍵管理と会員データの暗号化の話。鍵管理は、マネージドな鍵管理があるので、それを使う。アルゴリズム的には
 
-baseURL = "http://localhost:1313"
-baseURL = "https://www.sigmanyan.com"
+暗号化全般の導入コストが低い、特にDBの暗号化。鍵管理＝鍵のアクセス権＋監査なので、このあたりをまとめて書くかな。
 
-```
+### 脆弱性管理プログラムの整備
 
+- 要件5：アンチウィルスソフトウェアまたはプログラムを使用し、定期的に更新する
+- 要件6：安全性の高いシステムとアプリケーションを開発し、保守する
 
-### サーバーを起動し、デバッグする
+PaaS使って、共同管理モデルを適応する。
 
-- server コマンドで開発用のサーバーを起動し、テンプレートのビルドと記事の作成を行う。
-- server -D コマンドだと、Draft状態の記事も含めてビルドする。
+[Develop secure cloud applications on Azure](https://docs.microsoft.com/en-us/azure/security/abstract-develop-secure-apps) などというドキュメントがあったりするので、良さそうな部分を使わせてもらう。
 
-```command
-hugo server -D
-```
+※ 改竄防止には、Run From Package が良かったなと思ったり
 
-[-D, buildDrafts include content marked as draft](https://gohugo.io/commands/hugo/#options)
+### 強固なアクセス制御手法の導入
 
-ドラフト状態のドキュメントでサーバーが起動する。
+- 要件7：カード会員データへのアクセスを、業務上必要な範囲内に制限する
+- 要件8：コンピュータにアクセスできる各ユーザに一意の ID を割り当てる
+- 要件9：カード会員データへの物理アクセスを制限する
 
-{{< figure src="/images/hugo/server-d.png" alt="server-d"  >}}
+Azureにおける分離の話を書くと長くなる。[Isolation in the Azure Public Cloud](https://docs.microsoft.com/en-us/azure/security/azure-isolation)
 
+ここでは、特定のカード会員番号だけにアクセスできる人（エンドユーザー）と不特定多数のカード会員番号にアクセスできる人を分けて扱っていることが重要。脅威は内部にもある。
 
+### ネットワークの定期的な監視およびテスト
 
+- 要件10：ネットワークリソースおよびカード会員データへのすべてのアクセスを追跡および監視する
+- 要件11：セキュリティシステムおよびプロセスを定期的にテストする
 
-### 試しに編集してみる
+モニターと監査、[Azure security management and monitoring overview](https://docs.microsoft.com/en-us/azure/security/security-management-and-monitoring-overview) このあたりが、良いけど。構成的にもっと前にもっていったほうが良いかも。
 
-- .mdを編集すると http://loacalhost:1313/testarticle1/ 上の内容もリアルタイム修正される。
-- layouts配下を修正しても http://loacalhost:1313/testarticle1/ 上でリアルタイム修正される。
-- public配下にデバッグ環境を生成している場合は、serverコマンドを使って再度renderToDiskしないと再生成されない模様。(物理ファイルがあってもなくてもデバッグできる。)
+ここには、Shared responsibility（共同責任モデル）、Role-Based Access Control、Antimalware、Multi-Factor Authentication、ExpressRoute、Virtual network gateways とかの話が書いてある。いろいろ新しいのが出すぎてるので、どうするか検討する。
 
+この部分は、アクセス権を適切に設定し、ログを取る（監査）の二本立ての片方（２つめ）
 
-### dev環境とproduction環境のファイル一式を生成する
+### 情報セキュリティポリシーの整備
 
-hugoは静的CMSなので、HTMLファイルを生成し、それをデプロイする必要がある。
-※もしくはGitと連携し、Gitからデプロイする。
+- 要件12：すべての担当者の情報セキュリティポリシーを整備する
 
-- public/production フォルダ配下にproduction環境のファイル生成する。こちらをリリースに使う。
+Azure Blueprintは、どうやらシステム的に対応しようとしているようだけど、まだ出来てない感じ
 
-```command
-hugo 
-```
+## 第2章 Azure PCI DSS Blueprint (PaaS) とは
 
-{{< figure src="/images/hugo/public-production.png" alt="production環境のファイル生成する。"  >}}
+Azure PCI DSS Blueprint (PaaS)では、PCI DSSの課題に対してAzure 上でどのような実装をするのかを解説している。ここでは、PCI DSSの課題に対して、Blueprintはどのように扱っているのかを解説する。
+（ここは全部流すとながくなりそう）
+PANのデータフローとか
 
+## 参考
 
-- public/dev フォルダ配下以下にdev環境のファイル生成する。(こちらは使うケースが少ない。)
+参考リンク
 
-```command
-hugo server --renderToDisk
-```
+### Azure Security and Compliance Blueprint
 
+Azure Security DocumentationのPCI DSSの下は４つに別れてます
 
+- [Data analytics/Analytics for PCI DSS](https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-analytics-overview)
+- [Data warehouse/Data Warehouse for PCI DSS](https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-dw-overview)
+- [IaaS web application/IaaS Web Application for PCI DSS](https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-iaaswa-overview)
+- [PaaS web application/PaaS Web Application for PCI DSS](https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-paaswa-overview)
 
+## まとまったドキュメント(PDF)の場所
 
-### リファレンス
+[Azure セキュリティおよびコンプライアンス PCI DSS Blueprint](https://servicetrust.microsoft.com/ViewPage/PCIBlueprint)
 
-- [Hugoコマンドのリファレンス](https://gohugo.io/commands/)
+## 2019/6/27 の PCI DSS Azure Blueprint のBlog
 
-- [Template Cayman](https://github.com/zwbetz-gh/cayman-hugo-theme#credits)
+2019/6/27に、Azure Blueprint(preview) に、PCI-DSS v3.2.1 blueprint を追加するというアナウンスがありました。[New PCI DSS Azure Blueprint makes compliance simpler](https://azure.microsoft.com/en-us/blog/new-pci-dss-azure-blueprint-makes-compliance-simpler/)
+
+![New PCI DSS Azure Blueprint makes compliance simpler](/images/pcidss/newpcidssbp01.png)
+
+以下Blogからの概要です
+
+Azure Blueprintsの入った、PCI-DSS v3.2.1のBlueprints では下記のPCI DSS コントロールへのマッピングが含まれている。
+
+- 職務の分離: 購読所有者の権限を管理
+- ネットワークおよびネットワークサービスへのアクセス: Azureリソースにアクセスできるユーザーを管理するための役割ベースのアクセス制御（RBAC）の実装
+- ユーザの秘密認証情報の管理: 多要素認証が有効になっていないアカウントを監査
+- ユーザーアクセス権の確認: レビュー用に優先順位を付ける必要があるアカウント（監査対象アカウント、昇格された権限を持つ外部アカウントなど）
+- アクセス権の削除または調整 購読に対する所有者権限を持つ非推奨アカウントの監査
+- 安全なログオン手順 多要素認証が有効になっていないアカウントの監査
+- パスワード管理システム: 強力なパスワードの強制
+- 暗号制御の使用に関する方針: 特定の暗号制御を実施し、弱い暗号設定の使用の監査
+- イベントとオペレータのロギング: Diagnosticログは、Azureリソース内で実行された操作についてのinsightを提供
+- 管理者とオペレータのログ: システムイベントが記録されていることの確認
+- 技術的な脆弱性の管理: 不足しているシステムアップデート、オペレーティングシステムの脆弱性、SQLの脆弱性、およびAzure Security Centerの仮想マシンの脆弱性の監視
+- ネットワーク制御: ネットワーク管理、制御、ネットワークセキュリティグループでの寛容なルールの使用を監視
+- 情報伝達の方針と手順: Azureサービスとの情報転送が安全であることの確認
+
+従来運用に任せた部分をできるだけ自動化しようという方向性を感じます。まだpreviewなので動向を見守りつつ今後に期待ですね。
+
+## その他
+
+- [What Does Shared Responsibility in the Cloud Mean?](https://blogs.msdn.microsoft.com/azuresecurity/2016/04/18/what-does-shared-responsibility-in-the-cloud-mean/)
+- [Use the Microsoft Graph Security API](https://docs.microsoft.com/en-us/graph/api/resources/security-api-overview?view=graph-rest-beta)
 
