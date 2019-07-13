@@ -13,6 +13,8 @@ draft: true
 
 ## 概要
 
+我々は、Microsoftが公開している、[PCI DSS のための PaaS Web アプリケーション](https://docs.microsoft.com/ja-jp/azure/security/blueprints/pcidss-paaswa-overview) と [Azure Security and Compliance Blueprint - automation pci-paas-webapp-ase-sqldb-appgateway-keyvault-oms](https://github.com/Azure/pci-paas-webapp-ase-sqldb-appgateway-keyvault-oms) をベースにPCI DSS 準拠のサービスを構築を行った。その時の知見を元に、PCI DSSの概要とAzure上での PCI DSS 準拠サービスの構築の知見を共有する。
+
 <hr/>
 <NOTE>
 
@@ -36,12 +38,13 @@ draft: true
 
 ## クラウドのセキュリティ上の利点
 
+まず最初に重要なことは、クラウドのセキュリティ上の利点を理解することだ。この利点を活かすことができるかどうかで大きく変わってくる。
+
 オンプレミス環境では、ユーザーが物理層（データセンター、ハードウェア、ネットワーク）、仮想化レイヤーからアプリケーションまですべてのスタックを所有している。攻撃者はすべてのレイヤーの脆弱性を悪用することができ、ユーザー組織はリソースをセキュリティ保全に投資する必要がある。ここで重要なのは、セキュリティ投資はビジネスリスクとのバランスで決定される限られたリソースであることだ。
 
 ユーザーは、クラウドにアプリケーションをホストすることで、クラウドベースのセキュリティ機能を利用して脅威の検出と対応にかかる時間を短縮することができ、責任をクラウドプロバイダーに移すことで、ユーザーはより広い範囲のセキュリティ保全を得ることができる。そして、責任範囲にセキュリティリソースを集中、もしくは予算を他のビジネス優先事項に割り当ることが可能となる。
 
 ![Cloud security advantages](https://docs.microsoft.com/en-us/azure/security/media/security-paas-deployments/advantages-of-cloud.png)
-
 
 ## Division of responsibility
 
@@ -50,13 +53,6 @@ draft: true
 ![responsibility matrix](https://docs.microsoft.com/en-us/azure/security/media/security-paas-deployments/responsibility-zones.png)
 
 この図を下から見ていくと、物理レイヤーは、クラウドプロバイダーの責務となり、その上はクラウドプロバイダーとユーザーの共同責任、さらに上はユーザーの責任となっている。共同責任の部分は、展開モデルによって責任分担の範囲にバリエーションがあり、IaaSではユーザ責任部分が多くなり、SaaSではクラウドプロバイダーの責任部分が多くなる。限られたセキュリティーリソースの有効利用という観点では、SaaS,PaaS、IaaSの順で有効でいうことがわかる。ここでは、サービスを提供するにあたって、サービス要件の充足とユーザーの責任分担を最小化のバランスを考慮しアーキテクチャを構築する。<NOTE>コンテナについて書くべくかな</NOTE>
-
-<NOTE>唐突なので、どこかに移動する</NOTE>
-ここに、PCI DSSを例にして、Azure上でのセキュアサービスの構築を説明する。
-
-![New PCI DSS Azure Blueprint makes compliance simpler](/images/pcidss/overview.png)
-
-参考: [Securing PaaS deployments](https://docs.microsoft.com/en-us/azure/security/security-paas-deployments)
 
 ## PCI DSS 3.2 の概要とAzureでの実装
 
@@ -68,9 +64,9 @@ draft: true
 
 上記のことを踏まえ、現時点でPCI DSSでなにが求められいるのかと、Azure PCI DSS Blueprint PaaSでの実装を解説する、随時元の規格（PCI DSS)を参照しながら読んで欲しい。
 
-### 序文から（要件の前に書いてある部分）
+### PCI DSS 3.2 序文から
 
-PCI DSSには、12の要件があり、そちらに話が集中することが多いが、ここには良いことがいろいろ書いてあるので、少し紹介する。<NOTE>PCI DSSを読み直して内容を確認する</NOTE>
+PCI DSSには、12の要件があり、そちらに話が集中することが多いが、要件の前の部分に良いことがいろいろ書いてあるので、少し紹介する。<NOTE>PCI DSSを読み直して内容を確認する</NOTE>
 
 「ネットワークセグメンテーションは要件ではないが、ネットワークセグメンテーションを利用すると対象範囲の限定し、評価コスト、PCI DSSコントロールの実施、維持コスト、組織のリスクを低減することができる」とあり、これは多くのシステムに適応できる。PCI DSS曰く、多重防衛の１つとしてネットワークを使うのはコスト的に優れてるのでお勧めというわけ。
 
@@ -86,21 +82,34 @@ PCI DSSには、代替コントロールという考え方がある、これは�
 
 このあたりは、全体的なアーキテクチャー上の思想、哲学の部分なので、Azureとはあまり関係ないと思われがちだが、この辺 [Azure Security Documentation](https://docs.microsoft.com/en-us/azure/security/)　見ると出てくる（と思う、詳細は後で）
 
-### 安全なネットワークの構築と維持
+### PCI DSS Blueprintの構成
 
-要件1,2として、ネットワーク分離の話と、ネットワーク機材の適切な設定の要件が記述されている。
+Azure PCI DSS Blueprint は、下記のような構成になっている。実際のサイトの構成はさらに複雑だが、ここではBlueprintを元にして構成を説明する。左側のフロントから簡単に説明すると、Applicaiton Gateway + WAFの構成を公開エンドポイントとし、Internal LB経由で、AppService Environmentに接続する。アプリケーションはASEに展開され、バックエンドにはSQL Databaseがある。運用管理用に踏み台サーバー(Bastion)があり、踏み台サーバーへのアクセスはExpress Route経由でアクセス制限された環境とする。ログ、メトリックは、Azure Monitorに集約している。
+
+{{< figure src="/images/pcidss/overview.png" title="Azure PCI DSS Azure アークテクチャー図" >}}
+
+本環境を構築するためのリソースは、GitHubで公開されている。スタートとして参考になるだろう。
+
+参考: [Securing PaaS deployments](https://docs.microsoft.com/en-us/azure/security/security-paas-deployments)
+
+
+### PCI DSS 3.2 安全なネットワークの構築と維持
+
+PCI DSS 3.2 では、多重防御の１つとしてネットワーク分離を利用しており、要件1,2として、ネットワーク分離、ネットワーク機材の適切な設定の要件が記述されている。ネットワーク分離は、クラウド上でも有効な方策として広く使われる。多重防御の一つとして使われるという部分と適切な設定運用が重要という部分に注意が必要だ。ここでは、多重防御という観点でどのような方策をとっているのかについて述べる。
+
+**PCI DSS 要件**
 
 - 要件1：カード会員データを保護するために、ファイアウォールをインストールして構成を維持する
 - 要件2：システムパスワードおよびその他のセキュリティパラメータにベンダ提供のデフォルト値を使用しない
 
-Blueprintでは分離に、下記４つのテクノロジを利用している
+Blueprintでは多重防御に、下記４つのテクノロジを利用している
 
 1. VNet + Subnet + Network Security Group
 2. App Service の Sandbox
 3. Firewall/ Virtual Network Service Endpoints
 4. Application Gateway
 
-最初の方法では、仮想ネットワークをサブネットに分割しサブネットへのアクセスをNetwork Security Groupで制限することでネットワークをセグメント化する。セグメント化されたネットワークにコンポーネントを配置することで通信を制限し、通信を暗号化することでCDE の入出力を保護する。各サブネットには単一責務のコンポーネントのみを配置する。
+最初の方法では、仮想ネットワークをサブネットに分割しサブネットへのアクセスをNetwork Security Groupで制限することでネットワークをセグメント化する。セグメント化されたネットワークにコンポーネントを配置することで必要な通信を限定し、サブネット間での通信を必要なものみを許可し通信自体を暗号化することで機密データの入出力を保護する。各サブネットには単一責務のコンポーネントのみを配置することでセキュリティ要件を単純、明確にすることができる。例えば、"Azure PCI DSS アークテクチャー図" の、Applicaiton Gateway, ASE, Bastion は、それぞれ別々の固有のサブネットにデプロイされ、必要な通信だけをNSGで許可してる。
 
 2つ目の方法は、インターネット向けのフロント、内部的な管理サイト、バッチ（WebJob）の分離に使用した。これらのコンポーネントは、App ServiceのSandboxで分離され、お互いの通信は制御された方法だけに制限される。つまり、直接メモリを読んだり、相互にファイルなどのデータのやり取りをすることはできない。
 
@@ -206,17 +215,41 @@ Azureにおける分離の話を書くと長くなる。[Isolation in the Azure 
 
 この部分は、アクセス権を適切に設定し、ログを取る（監査）の二本立ての片方（２つめ）
 
+#### ログ記録と監査
+アプリケーションログは、最初にApplication Insightに配送され、その後Log Analytics に送られる。Log Analyticsは 本システム のすべてのシステムおよびユーザー アクティビティの広範なログ記録 (カード所有者データのログ記録を含む) を提供する。 また、Azure リソースの正確性を確保するために、変更内容を確認および検証できる。 
+
+- アクティビティ ログ
+  アクティビティ ログは、サブスクリプションのリソースに対して実行された操作を記録する
+- 診断ログ
+  診断ログは、リソースによって出力されるすべてのログです。 これらのログには、Windows イベント システム ログ、Azure Blob Storage、テーブル、キューのログが含まれる。
+- ファイアウォール ログ
+  Application Gateway は、完全な診断およびアクセス ログを提供する。OWASPルールのログが出力される。
+- ログのアーカイブ
+すべてのログは Azure Log Analytics に接続されて処理、格納、ダッシュボード化される。Log Analyticsは、クラウドおよびオンプレミス環境内のリソースで生成されたデータの収集と分析のマネージド・サービスである。
+
+***関連PCI DSS要件*** 要件 1.1.1, 要件 2.2, 要件 2.4, 要件 6.4, 要件 9.9, 要件 10.1, 要件 10.2, 要件 10.7, 要件 10.8, 要件 11.5, 要件 11.5.1, 要件 11.6
+
+#### Application Insights
+アプリケーションのパフォーマンス管理と瞬時の分析のため、Application Insightsが設定されています。本ログは、保存を目的としたものでは無く保存期間は90日です。保存のためには、本システムでは下記テレメトリをLog Analytics に転送しています。Traceテレメトリは転送されないのに注意してください。
+
+- 可用性
+- 例外
+- Requests
+- ページ ビュー（未使用）
+- カスタム イベント
+
+担当者画面の操作履歴は、Application Insightのカスタムイベントとして出力されます。操作履歴は、Log Analyticsに転送され規定の期間保存されます。
+また、Application Insights では、"サンプリング補正" によって、テレメトリのトラフィックを削減します。本システムでは、カスタム イベントをサンプリング対象外としています。
+5.2.	Log Analytics
+Log Analyticsは Azure のサービスであり、クラウドおよびオンプレミスの環境内にあるリソースで生成されたデータを収集します。
+リテンションは、365日で、ログは365日間保持される。データ量に制限は無いが、容量で利用料金が変わる。Log Analytics データのセキュリティについては、下記リンクを参照のこと。
+https://docs.microsoft.com/ja-jp/azure/log-analytics/log-analytics-data-security
+
 ### 情報セキュリティポリシーの整備
 
 - 要件12：すべての担当者の情報セキュリティポリシーを整備する
 
 Azure Blueprintは、どうやらシステム的に対応しようとしているようだけど、まだ出来てない感じ
-
-## 第2章 Azure PCI DSS Blueprint (PaaS) とは
-
-Azure PCI DSS Blueprint (PaaS)では、PCI DSSの課題に対してAzure 上でどのような実装をするのかを解説している。ここでは、PCI DSSの課題に対して、Blueprintはどのように扱っているのかを解説する。
-（ここは全部流すとながくなりそう）
-PANのデータフローとか
 
 ## 参考
 
@@ -241,7 +274,8 @@ Azure Security DocumentationのPCI DSSの下は４つに別れてます
 
 ![New PCI DSS Azure Blueprint makes compliance simpler](/images/pcidss/newpcidssbp01.png)
 
-以下Blogからの概要です
+
+### 以下Blogからの概要です
 
 Azure Blueprintsの入った、PCI-DSS v3.2.1のBlueprints では下記のPCI DSS コントロールへのマッピングが含まれている。
 
