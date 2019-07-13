@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+      
+  Azure上での PCI DSS 準拠サービスの構築 &ndash; PCI DSS Azure draft site
+
+    </title>
+    
+    <meta content="PCIDSS, Azure, Blueprint" name="keywords">
+    
+    
+    <meta name="description" property="og:description" content="求められるサービスのセキュリティとAzure上での PCI DSS Blueprint を元にした準拠サービスの構築|Describe what your web page is about">
+    
+
+    <meta name="apple-mobile-web-app-title" content="PCI DSS Azure draft site">
+    
+    
+    <link rel="icon" href="/favicon-64.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="mask-icon" size="any" href="/pinned-icon.svg">
+    
+    
+    
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@takekazuomi">
+    <meta name="twitter:creator" content="@takekazuomi">
+    <meta name="twitter:title" content="Azure上での PCI DSS 準拠サービスの構築 | PCI DSS Azure draft site">
+    <meta name="twitter:description" content="求められるサービスのセキュリティとAzure上での PCI DSS Blueprint を元にした準拠サービスの構築|Describe what your web page is about">
+    <meta name="twitter:image" content="http://example.org/twitter-card.png">
+    
+
+
+    <link rel="stylesheet" href="/assets/syntax.css">
+    <link rel="stylesheet" href="/assets/primer-build.css">
+    <link rel="stylesheet" href="/assets/style.css">
+  </head>
+
+
+  <body class="bg-gray">
+    <div id="holy" class="container-lg bg-white h-100">
+
+      <div id="header" class="px-1 bg-white">
+        <nav class="UnderlineNav UnderlineNav--right px-2">
+  <a class="UnderlineNav-actions muted-link h2" href="http://example.org/">
+    PCI DSS Azure draft site
+  </a>
+
+  
+  
+</nav>
+
+      </div>
+
+      <div role="main" id="main" class="holy-main markdown-body px-4 bg-white">
+        
+
+<div class="Subhead">
+  <div class="Subhead-heading">
+    <div class="h1 mt-3 mb-1">Azure上での PCI DSS 準拠サービスの構築</div>
+  </div>
+  <div class="Subhead-description">
+    
+
+
+
+
+<a href='/tags/azure' class="muted-link">
+  <span class="Label Label--gray">Azure</span>
+</a>
+
+<a href='/tags/pcidss' class="muted-link">
+  <span class="Label Label--gray">PCIDSS</span>
+</a>
+
+
+
+    
+    <div class="float-md-right">
+      <span title="Lastmod: 2019-07-13. Published at: 2019-07-08.">
+        
+          Lastmod: 2019-07-13
+        
+      </span>
+    </div>
+    
+  </div>
+</div>
+<article>
+  
+  <section class="pb-6 mb-3 border-bottom">
+    
+
+<h2 id="概要">概要</h2>
+
+<hr/>
+
+<p><NOTE></p>
+
+<p>冒頭に、なにかフリを置く、最後に書くかな。</p>
+
+<p>以下概要</p>
+
+<p>あらすじ</p>
+
+<p>ここでは、セキュリティ視点を中心にクラウドアプリケーションの構築を紹介する。まずは、クラウドのセキュリティ上の利点と背景を説明し、その後、高度なセキュリティ基準の例としてPCI DSSの概要を記述し。Azure上での実装としてPCI DSS Blueprint PaaS をもとに紹介する。</p>
+
+<p>下記のことがどこかに書かれるはず</p>
+
+<ul>
+<li>クラウドでアプリケーションをホスティングすることのセキュリティ上の利点</li>
+<li>他のクラウドサービスモデルに対するサービスとしてのプラットフォーム（PaaS）のセキュリティ上の利点を評価</li>
+<li>セキュリティをネットワーク中心からアイデンティティ中心のセキュリティアプローチに変更</li>
+<li>一般的なPaaSセキュリティベストプラクティスの推奨事項を実装</li>
+</ul>
+
+<p></NOTE>
+<hr/></p>
+
+<h2 id="クラウドのセキュリティ上の利点">クラウドのセキュリティ上の利点</h2>
+
+<p>オンプレミス環境では、ユーザーが物理層（データセンター、ハードウェア、ネットワーク）、仮想化レイヤーからアプリケーションまですべてのスタックを所有している。攻撃者はすべてのレイヤーの脆弱性を悪用することができ、ユーザー組織はリソースをセキュリティ保全に投資する必要がある。ここで重要なのは、セキュリティ投資はビジネスリスクとのバランスで決定される限られたリソースであることだ。</p>
+
+<p>ユーザーは、クラウドにアプリケーションをホストすることで、クラウドベースのセキュリティ機能を利用して脅威の検出と対応にかかる時間を短縮することができ、責任をクラウドプロバイダーに移すことで、ユーザーはより広い範囲のセキュリティ保全を得ることができる。そして、責任範囲にセキュリティリソースを集中、もしくは予算を他のビジネス優先事項に割り当ることが可能となる。</p>
+
+<p><img src="https://docs.microsoft.com/en-us/azure/security/media/security-paas-deployments/advantages-of-cloud.png" alt="Cloud security advantages" /></p>
+
+<h2 id="division-of-responsibility">Division of responsibility</h2>
+
+<p>クラウドプロバイダーとの責任分担を理解することが重要だ。オンプレミスではスタック全体を所有しているが、クラウドでは、一部の責任がクラウドプロバイダー(Microsoft)に移転する。どのような責任分担となるのかは、下記のresponsibility matrixを見てほしい。ユーザー(青)と、Microsoft(灰色)が担当しているSaaS、PaaS、およびIaaSの展開におけるスタックの領域を表している。</p>
+
+<p><img src="https://docs.microsoft.com/en-us/azure/security/media/security-paas-deployments/responsibility-zones.png" alt="responsibility matrix" /></p>
+
+<p>この図を下から見ていくと、物理レイヤーは、クラウドプロバイダーの責務となり、その上はクラウドプロバイダーとユーザーの共同責任、さらに上はユーザーの責任となっている。共同責任の部分は、展開モデルによって責任分担の範囲にバリエーションがあり、IaaSではユーザ責任部分が多くなり、SaaSではクラウドプロバイダーの責任部分が多くなる。限られたセキュリティーリソースの有効利用という観点では、SaaS,PaaS、IaaSの順で有効でいうことがわかる。ここでは、サービスを提供するにあたって、サービス要件の充足とユーザーの責任分担を最小化のバランスを考慮しアーキテクチャを構築する。<NOTE>コンテナについて書くべくかな</NOTE></p>
+
+<p><NOTE>唐突なので、どこかに移動する</NOTE>
+ここに、PCI DSSを例にして、Azure上でのセキュアサービスの構築を説明する。</p>
+
+<p><img src="/images/pcidss/overview.png" alt="New PCI DSS Azure Blueprint makes compliance simpler" /></p>
+
+<p>参考: <a href="https://docs.microsoft.com/en-us/azure/security/security-paas-deployments">Securing PaaS deployments</a></p>
+
+<h2 id="pci-dss-3-2-の概要とazureでの実装">PCI DSS 3.2 の概要とAzureでの実装</h2>
+
+<blockquote>
+<p>PCIデータセキュリティスタンダード（PCI DSS：Payment Card Industry Data Security Standard）は、 クレジットカード情報および取り引き情報を保護するために2004年12月、JCB・American Express・Discover・マスターカード・VISAの国際ペイメントブランド5社が共同で策定した、クレジット業界におけるグローバルセキュリティ基準である。</p>
+</blockquote>
+
+<p><a href="https://ja.wikipedia.org/wiki/PCI%E3%83%87%E3%83%BC%E3%82%BF%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89">Wikipedia: PCIデータセキュリティスタンダード</a></p>
+
+<p>現在は、PCI DSS 3.2.1 が最新で、セキュアなサービスを構築する上で必要なことのエッセンスが凝縮している。PCI DSSからは、セキュアなサービスと現実的なセキュリティへの取り組みのバランスを学ぶことができる。これは、PCI DSSはクレジットカードブランドが、クレジットカード番号を使った決済の手数料でビジネスをするという自分たちのビジネスモデルを守るために策定したセキュリティ基準であることから生まれた結果だ。クレジットカードでの取引がが減るほど非現実的（実装コストが高い）なセキュリティを要求すると手数料ビジネスという彼らのビジネスモデルが成立しない。また、クレジットカードの信頼性が失われるほど不正利用が増えた場合も同様にユーザーのカード利用が減ることが予想される。この２つの問題を現実的な路線で収束させるのことは、PCI DSS（カウンシル）に期待される役目であり、PCIデータセキュリティスタンダードはその成果物だ。また、このバランスは社会的な状況によって変動する。</p>
+
+<p>上記のことを踏まえ、現時点でPCI DSSでなにが求められいるのかと、Azure PCI DSS Blueprint PaaSでの実装を解説する、随時元の規格（PCI DSS)を参照しながら読んで欲しい。</p>
+
+<h3 id="序文から-要件の前に書いてある部分">序文から（要件の前に書いてある部分）</h3>
+
+<p>PCI DSSには、12の要件があり、そちらに話が集中することが多いが、ここには良いことがいろいろ書いてあるので、少し紹介する。<NOTE>PCI DSSを読み直して内容を確認する</NOTE></p>
+
+<p>「ネットワークセグメンテーションは要件ではないが、ネットワークセグメンテーションを利用すると対象範囲の限定し、評価コスト、PCI DSSコントロールの実施、維持コスト、組織のリスクを低減することができる」とあり、これは多くのシステムに適応できる。PCI DSS曰く、多重防衛の１つとしてネットワークを使うのはコスト的に優れてるのでお勧めというわけ。</p>
+
+<p>また、「PCI DSSの適応範囲は、PAN（カード会員番号）を扱っている部分。処理は、伝送、処理、保管を現す」。PCI DSSはカード会員番号のセキュリティ基準なのでこうなっているが、Webサイトのセキュリティを考えた場合、守るべく情報を厳密に定義し、「伝送、処理、保管」で、どのように扱うかうべきかを決めることがセキュリティー上有効である。</p>
+
+<p>複数の要求レベルの異なったデータの扱いの明確化、ここでは、「カード会員データとセンシティブ認証データの２つに分けて定義」する旨が記述され、カード会員データ（カード番号、有効期限、カード会員名、サービスコード）は、業務上の必要があれば保存可、センシティブ認証データは、処理後破棄、保存不可と明記されている。</p>
+
+<p>それ以外にも、「カード会員データの保存、処理または伝送に関するビジネスニーズおよびプロセスを明確にし、データフロー図を使用してカード会員データフローを文書化しろ」など。</p>
+
+<p>ここで全体的に語られているのは、守るべき情報（守秘情報）を定義し、守秘情報のフロー、処理、ビジネス要件を明らかにすることの必要性です。こう考えると、もしかして必要になるかもしれないので、一緒に渡しておくとか、的な考えは守秘情報には適応できない旨を理解してシステム設計をするべきということが言えます。拡張性、柔軟性とは相反する要件とも言える。</p>
+
+<p>PCI DSSには、代替コントロールという考え方がある、これは一種の回避作でビジネス要件上避けられない場合に用意された方策だ。本稿では、代替コントロールに関しては範囲外として扱わない。</p>
+
+<p>このあたりは、全体的なアーキテクチャー上の思想、哲学の部分なので、Azureとはあまり関係ないと思われがちだが、この辺 <a href="https://docs.microsoft.com/en-us/azure/security/">Azure Security Documentation</a>　見ると出てくる（と思う、詳細は後で）</p>
+
+<h3 id="安全なネットワークの構築と維持">安全なネットワークの構築と維持</h3>
+
+<p>要件1,2として、ネットワーク分離の話と、ネットワーク機材の適切な設定の要件が記述されている。</p>
+
+<ul>
+<li>要件1：カード会員データを保護するために、ファイアウォールをインストールして構成を維持する</li>
+<li>要件2：システムパスワードおよびその他のセキュリティパラメータにベンダ提供のデフォルト値を使用しない</li>
+</ul>
+
+<p>Blueprintでは分離に、下記４つのテクノロジを利用している</p>
+
+<ol>
+<li>VNet + Subnet + Network Security Group</li>
+<li>App Service の Sandbox</li>
+<li>Firewall/ Virtual Network Service Endpoints</li>
+<li>Application Gateway</li>
+</ol>
+
+<p>最初の方法では、仮想ネットワークをサブネットに分割しサブネットへのアクセスをNetwork Security Groupで制限することでネットワークをセグメント化する。セグメント化されたネットワークにコンポーネントを配置することで通信を制限し、通信を暗号化することでCDE の入出力を保護する。各サブネットには単一責務のコンポーネントのみを配置する。</p>
+
+<p>2つ目の方法は、インターネット向けのフロント、内部的な管理サイト、バッチ（WebJob）の分離に使用した。これらのコンポーネントは、App ServiceのSandboxで分離され、お互いの通信は制御された方法だけに制限される。つまり、直接メモリを読んだり、相互にファイルなどのデータのやり取りをすることはできない。</p>
+
+<p>3つ目は、SQL Database/Azure Storageなどのマネージド・サービスのアクセス制御で利用される。アプリケーションからSQL Databaseのアクセスは、SQL DatabaseのFirewallで特定のVNetからのアクセスのみを許可する設定としている。</p>
+
+<p>また、Webアプリケーションへのアクセスは、Application Gateway（WAF）経由とし既知の脆弱性の問題を軽減する。本システムではWebアプリケーションは、専用サーバーと仮想ネットワークへの配置という観点からApp Service Environment を利用している。</p>
+
+<p>Webアプリケーションの、HTTPS トラフィックは、カスタム ドメインの SSL 証明書を使用し、Azure内の通信はすべて暗号化する。Azure内で通信が傍受される可能性が低いが、ハード、ソフトともに暗号化のコストも低く導入障壁も低いことから全通信の暗号化を導入している。</p>
+
+<p>Log Analytics が、広範にわたる変更のログ記録を提供することで、変更内容の確認、検証を可能とし設定の正確性を確保する。</p>
+
+<p><NOTE>
+Blueprintを元に、追加のドキュメントとして、<a href="https://docs.microsoft.com/en-us/azure/security/abstract-azure-network-security">Azure network security</a> を絡めて書く。</p>
+
+<p>このあたりは、構成を考える。
+</NOTE></p>
+
+<h4 id="application-gatewayの機能">Application Gatewayの機能</h4>
+
+<p>WAF (OWASP 3.0ルールセット)に対応した Application Gateway を使用することで、セキュリティの脆弱性のリスクを軽減する。Application Gateway は、カード会員WEB用（インターネットアクセス可）と担当者画面用（ExpressRoute経由のみ）の２つがある。ぞれぞれのApplication Gatewayは、固有のApp Servicesのフロントに設定される。
+Application Gatewayの他の機能には次のものがある。</p>
+
+<ol>
+<li>エンド ツー エンド SSL</li>
+<li>SSL オフロードの有効化</li>
+<li>TLS v1.0 および v1.1 の無効化</li>
+<li>Web アプリケーション ファイアウォール (WAF モード)</li>
+<li>OWASP 3.0 ルールセットを使用した検出モード</li>
+<li>診断ログの有効化</li>
+<li>カスタム正常性プローブ</li>
+<li>Azure Security Center と Azure Advisor による、保護と通知の提供。 Azure Security Center は評価システムも提供</li>
+</ol>
+
+<p><strong>関連PCI DSS要件</strong> 要件 1.3, 要件 1.3.1, 要件 1.3.2, 要件 2.2.3, 要件 4.1, 要件 6.1, 要件 6.6, 要件 付録A2</p>
+
+<h4 id="network-security-groupの役割">Network Security Groupの役割</h4>
+
+<p>サブネット毎にコンポーネントを分割配置し、各サブネットに専用のNetwork Security Group (NSG) を定義。通信を制限した、Blueprintでは下記の種類のNSGを定義している。</p>
+
+<ol>
+<li>ファイアウォールおよび Application Gateway WAF 用の DMZ ネットワーク セキュリティ グループ</li>
+<li>ジャンプボックス (要塞ホスト) 管理用の NSG</li>
+<li>App Service Environment 用の NSG</li>
+<li>Azure Batch用のNSG</li>
+</ol>
+
+<p>各 NSG には、本システムの安全かつ適切な操作のために開かれる固有のポートとプロトコルを設定し、Log Analyticsにログを保存する。</p>
+
+<p><strong>関連PCI DSS要件</strong> 要件 1.2, 要件 1.2.1, 要件 6.3.1, 要件 6.3.2, 要件 6.4.1, 要件 6.4.2</p>
+
+<h3 id="カード会員データの保護">カード会員データの保護</h3>
+
+<p>要件3,4は、暗号化の話である、鍵管理と会員データの暗号化の話。鍵管理は、マネージドな鍵管理(KeyVaul)を使う。</p>
+
+<ul>
+<li>要件3：保存されたカード会員データを保護する</li>
+<li>要件4：オープンな公共ネットワーク経由でカード会員データを伝送する場合、暗号化する</li>
+</ul>
+
+<p>Azureでは、暗号化全般の導入コストが低く、DBの暗号化は標準的な機能として提供されている。</p>
+
+<p>データの保存先としては、下記の２つを利用するが、ここではSQL Databaseについて説明する。</p>
+
+<ol>
+<li>Azure Storage</li>
+<li>Azure SQL Database</li>
+</ol>
+
+<h3 id="azure-sql-database">Azure SQL Database</h3>
+
+<p>Azure SQL Database インスタンスは、次のデータベース セキュリティ対策を使用する。管理者はSQL Databaseに、限られた権限を与えらたADユーザーとしてアクセスする。アプリケーションはKeyVautに保存された資格情報を使ってアクセスし、管理者のアクセスとは区別できるようにする。</p>
+
+<ol>
+<li>AD の認証と承認</li>
+<li>SQL Database 監査</li>
+<li>Azure SQL Databaseのファイアウォール規則</li>
+<li>Azure SQL Database の脅威の検出</li>
+<li>認証情報のKey Vaultへの保存</li>
+</ol>
+
+<p>システムではメディアを用いたバックアップ、複製や移動を行わない。</p>
+
+<p><strong>関連PCI DSS要件</strong> 要件 1.3.4, 要件 1.3.6, 要件 3.3, 要件 3.4, 要件 4.1, 要件 9.5, 要件 9.5.1, 要件 9.6, 要件 9.6.1, 要件 9.6.2, 要件9.6.3, 要件 9.7, 要件 9.8</p>
+
+<h3 id="脆弱性管理プログラムの整備">脆弱性管理プログラムの整備</h3>
+
+<ul>
+<li>要件5：アンチウィルスソフトウェアまたはプログラムを使用し、定期的に更新する</li>
+<li>要件6：安全性の高いシステムとアプリケーションを開発し、保守する</li>
+</ul>
+
+<p>PaaS使って、共同管理モデルを適応する。</p>
+
+<p><a href="https://docs.microsoft.com/en-us/azure/security/abstract-develop-secure-apps">Develop secure cloud applications on Azure</a> などというドキュメントがあったりするので、良さそうな部分を使わせてもらう。</p>
+
+<p>※ 改竄防止には、Run From Package が良かったなと思ったり</p>
+
+<h3 id="強固なアクセス制御手法の導入">強固なアクセス制御手法の導入</h3>
+
+<ul>
+<li>要件7：カード会員データへのアクセスを、業務上必要な範囲内に制限する</li>
+<li>要件8：コンピュータにアクセスできる各ユーザに一意の ID を割り当てる</li>
+<li>要件9：カード会員データへの物理アクセスを制限する</li>
+</ul>
+
+<p>Azureにおける分離の話を書くと長くなる。<a href="https://docs.microsoft.com/en-us/azure/security/azure-isolation">Isolation in the Azure Public Cloud</a></p>
+
+<p>ここでは、特定のカード会員番号だけにアクセスできる人（エンドユーザー）と不特定多数のカード会員番号にアクセスできる人を分けて扱っていることが重要。脅威は内部にもある。</p>
+
+<h3 id="ネットワークの定期的な監視およびテスト">ネットワークの定期的な監視およびテスト</h3>
+
+<ul>
+<li>要件10：ネットワークリソースおよびカード会員データへのすべてのアクセスを追跡および監視する</li>
+<li>要件11：セキュリティシステムおよびプロセスを定期的にテストする</li>
+</ul>
+
+<p>モニターと監査、<a href="https://docs.microsoft.com/en-us/azure/security/security-management-and-monitoring-overview">Azure security management and monitoring overview</a> このあたりが、良いけど。構成的にもっと前にもっていったほうが良いかも。</p>
+
+<p>ここには、Shared responsibility（共同責任モデル）、Role-Based Access Control、Antimalware、Multi-Factor Authentication、ExpressRoute、Virtual network gateways とかの話が書いてある。いろいろ新しいのが出すぎてるので、どうするか検討する。</p>
+
+<p>この部分は、アクセス権を適切に設定し、ログを取る（監査）の二本立ての片方（２つめ）</p>
+
+<h3 id="情報セキュリティポリシーの整備">情報セキュリティポリシーの整備</h3>
+
+<ul>
+<li>要件12：すべての担当者の情報セキュリティポリシーを整備する</li>
+</ul>
+
+<p>Azure Blueprintは、どうやらシステム的に対応しようとしているようだけど、まだ出来てない感じ</p>
+
+<h2 id="第2章-azure-pci-dss-blueprint-paas-とは">第2章 Azure PCI DSS Blueprint (PaaS) とは</h2>
+
+<p>Azure PCI DSS Blueprint (PaaS)では、PCI DSSの課題に対してAzure 上でどのような実装をするのかを解説している。ここでは、PCI DSSの課題に対して、Blueprintはどのように扱っているのかを解説する。
+（ここは全部流すとながくなりそう）
+PANのデータフローとか</p>
+
+<h2 id="参考">参考</h2>
+
+<p>参考リンク</p>
+
+<h3 id="azure-security-and-compliance-blueprint">Azure Security and Compliance Blueprint</h3>
+
+<p>Azure Security DocumentationのPCI DSSの下は４つに別れてます</p>
+
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-analytics-overview">Data analytics/Analytics for PCI DSS</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-dw-overview">Data warehouse/Data Warehouse for PCI DSS</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-iaaswa-overview">IaaS web application/IaaS Web Application for PCI DSS</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-paaswa-overview">PaaS web application/PaaS Web Application for PCI DSS</a></li>
+</ul>
+
+<h2 id="まとまったドキュメント-pdf-の場所">まとまったドキュメント(PDF)の場所</h2>
+
+<p><a href="https://servicetrust.microsoft.com/ViewPage/PCIBlueprint">Azure セキュリティおよびコンプライアンス PCI DSS Blueprint</a></p>
+
+<h2 id="2019-6-27-の-pci-dss-azure-blueprint-のblog">2019/6/27 の PCI DSS Azure Blueprint のBlog</h2>
+
+<p>2019/6/27に、Azure Blueprint(preview) に、PCI-DSS v3.2.1 blueprint を追加するというアナウンスがありました。<a href="https://azure.microsoft.com/en-us/blog/new-pci-dss-azure-blueprint-makes-compliance-simpler/">New PCI DSS Azure Blueprint makes compliance simpler</a></p>
+
+<p><img src="/images/pcidss/newpcidssbp01.png" alt="New PCI DSS Azure Blueprint makes compliance simpler" /></p>
+
+<p>以下Blogからの概要です</p>
+
+<p>Azure Blueprintsの入った、PCI-DSS v3.2.1のBlueprints では下記のPCI DSS コントロールへのマッピングが含まれている。</p>
+
+<ul>
+<li>職務の分離: 購読所有者の権限を管理</li>
+<li>ネットワークおよびネットワークサービスへのアクセス: Azureリソースにアクセスできるユーザーを管理するための役割ベースのアクセス制御（RBAC）の実装</li>
+<li>ユーザの秘密認証情報の管理: 多要素認証が有効になっていないアカウントを監査</li>
+<li>ユーザーアクセス権の確認: レビュー用に優先順位を付ける必要があるアカウント（監査対象アカウント、昇格された権限を持つ外部アカウントなど）</li>
+<li>アクセス権の削除または調整 購読に対する所有者権限を持つ非推奨アカウントの監査</li>
+<li>安全なログオン手順 多要素認証が有効になっていないアカウントの監査</li>
+<li>パスワード管理システム: 強力なパスワードの強制</li>
+<li>暗号制御の使用に関する方針: 特定の暗号制御を実施し、弱い暗号設定の使用の監査</li>
+<li>イベントとオペレータのロギング: Diagnosticログは、Azureリソース内で実行された操作についてのinsightを提供</li>
+<li>管理者とオペレータのログ: システムイベントが記録されていることの確認</li>
+<li>技術的な脆弱性の管理: 不足しているシステムアップデート、オペレーティングシステムの脆弱性、SQLの脆弱性、およびAzure Security Centerの仮想マシンの脆弱性の監視</li>
+<li>ネットワーク制御: ネットワーク管理、制御、ネットワークセキュリティグループでの寛容なルールの使用を監視</li>
+<li>情報伝達の方針と手順: Azureサービスとの情報転送が安全であることの確認</li>
+</ul>
+
+<p>従来運用に任せた部分をできるだけ自動化しようという方向性を感じます。まだpreviewなので動向を見守りつつ今後に期待ですね。</p>
+
+<h2 id="その他">その他</h2>
+
+<ul>
+<li><a href="https://blogs.msdn.microsoft.com/azuresecurity/2016/04/18/what-does-shared-responsibility-in-the-cloud-mean/">What Does Shared Responsibility in the Cloud Mean?</a></li>
+<li><a href="https://docs.microsoft.com/en-us/graph/api/resources/security-api-overview?view=graph-rest-beta">Use the Microsoft Graph Security API</a></li>
+</ul>
+
+  </section>
+
+  <section>
+    
+      
+    
+  </section>
+</article>
+
+      </div>
+
+      <div id="side" class="pr-1 bg-white">
+        <aside class="pr-3">
+          
+  
+    <div id="toc" class="Box Box--blue mb-3">
+      <b>Azure上での PCI DSS 準拠サービスの構築</b>
+      <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#概要">概要</a></li>
+<li><a href="#クラウドのセキュリティ上の利点">クラウドのセキュリティ上の利点</a></li>
+<li><a href="#division-of-responsibility">Division of responsibility</a></li>
+<li><a href="#pci-dss-3-2-の概要とazureでの実装">PCI DSS 3.2 の概要とAzureでの実装</a>
+<ul>
+<li><a href="#序文から-要件の前に書いてある部分">序文から（要件の前に書いてある部分）</a></li>
+<li><a href="#安全なネットワークの構築と維持">安全なネットワークの構築と維持</a>
+<ul>
+<li><a href="#application-gatewayの機能">Application Gatewayの機能</a></li>
+<li><a href="#network-security-groupの役割">Network Security Groupの役割</a></li>
+</ul></li>
+<li><a href="#カード会員データの保護">カード会員データの保護</a></li>
+<li><a href="#azure-sql-database">Azure SQL Database</a></li>
+<li><a href="#脆弱性管理プログラムの整備">脆弱性管理プログラムの整備</a></li>
+<li><a href="#強固なアクセス制御手法の導入">強固なアクセス制御手法の導入</a></li>
+<li><a href="#ネットワークの定期的な監視およびテスト">ネットワークの定期的な監視およびテスト</a></li>
+<li><a href="#情報セキュリティポリシーの整備">情報セキュリティポリシーの整備</a></li>
+</ul></li>
+<li><a href="#第2章-azure-pci-dss-blueprint-paas-とは">第2章 Azure PCI DSS Blueprint (PaaS) とは</a></li>
+<li><a href="#参考">参考</a>
+<ul>
+<li><a href="#azure-security-and-compliance-blueprint">Azure Security and Compliance Blueprint</a></li>
+</ul></li>
+<li><a href="#まとまったドキュメント-pdf-の場所">まとまったドキュメント(PDF)の場所</a></li>
+<li><a href="#2019-6-27-の-pci-dss-azure-blueprint-のblog">2019/6/27 の PCI DSS Azure Blueprint のBlog</a></li>
+<li><a href="#その他">その他</a></li>
+</ul></li>
+</ul>
+</nav>
+    </div>
+  
+
+  
+    
+    
+      <div>
+        
+          <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">Tweet</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+        
+
+        
+          <iframe src="https://www.facebook.com/plugins/share_button.php?href=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&layout=button&size=small&mobile_iframe=true&width=61&height=20&appId" width="61" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true" allow="encrypted-media"></iframe>
+        
+
+        
+          <a href="http://b.hatena.ne.jp/entry/" class="hatena-bookmark-button" data-hatena-bookmark-layout="basic-label-counter" data-hatena-bookmark-lang="ja" title="このエントリーをはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only@2x.png" alt="このエントリーをはてなブックマークに追加" width="20" height="20" style="border: none;" /></a><script type="text/javascript" src="https://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+        
+
+        
+          <a data-pocket-label="pocket" data-pocket-count="none" class="pocket-btn" data-lang="en"></a>
+          <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+        
+
+      </div>
+    
+  
+
+        </aside>
+      </div>
+
+      <div id="footer" class="pt-2 pb-3 bg-white text-center">
+        
+
+  <span class="text-small text-gray">
+    &copy;Takekazu Omi &middot; 
+
+    Powered by the
+    <a href="https://github.com/qqhann/hugo-primer" class="link-gray-dark">Hugo-Primer</a> theme for
+    <a href="https://gohugo.io" class="link-gray-dark">Hugo</a>.
+  </span>
+
+
+      </div>
+    </div>
+
+
+    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });</script>
+  </body>
+</html>

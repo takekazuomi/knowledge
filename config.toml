@@ -1,7 +1,7 @@
 baseURL = "http://example.org/"
 languageCode = "ja-JP"
 title = "PCI DSS Azure draft site"
-theme = "theer"
+theme = "hugo-primer"
 
 # If you are using Chinese, Japanese, or Korean, I highly recommend you to set this true.
 hasCJKLanguage = true
