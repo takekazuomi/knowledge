@@ -60,9 +60,20 @@ weight: 10
 
 上記のことを踏まえ、現時点でPCI DSSでなにが求められいるのかと、Azure PCI DSS Blueprint PaaSでの実装を解説する、随時元の規格（PCI DSS)を参照しながら読んで欲しい。
 
+{{% alert title="TODO" color="info" %}} 
+- AoCのことを書く [マイクロソフトと PCI DSS](https://www.microsoft.com/ja-jp/TrustCenter/Compliance/PCI)
+  > Microsoft Azure では、年 1 回、認定 Qualified Security Assessor (QSA) による PCI DSS 評価を実施しています。監査人が審査するのは Azure 環境です。この審査には、インフラ、開発、運用、管理、サポート、および対象サービスの検証が含まれます。PCI DSS では、取引量に応じて 4 つのレベルのコンプライアンスが指定されています。Azure は PCI DSS Version 3.2 サービス プロバイダー レベル 1 (年間取引量が最も多く、600 万件を超える) 準拠として認定されています。
+{{% /alert %}}
+
 ### PCI DSS 3.2 序文から
 
 PCI DSSには、12の要件があり、そちらに話が集中することが多いが、要件の前の部分に良いことがいろいろ書いてあるので、少し紹介する。<NOTE>PCI DSSを読み直して内容を確認する</NOTE>
+
+{{% alert title="TODO" color="info" %}} 
+- PCI DSS 適応性情報（機密情報の定義）P7
+- PCI DSS 要件の適応範囲 P10、狭くする
+- 
+{{% /alert %}}
 
 「ネットワークセグメンテーションは要件ではないが、ネットワークセグメンテーションを利用すると対象範囲の限定し、評価コスト、PCI DSSコントロールの実施、維持コスト、組織のリスクを低減することができる」とあり、これは多くのシステムに適応できる。PCI DSS曰く、多重防衛の１つとしてネットワークを使うのはコスト的に優れてるのでお勧めというわけ。
 
