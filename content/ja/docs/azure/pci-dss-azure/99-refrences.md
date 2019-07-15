@@ -9,6 +9,7 @@ keywords:
   - "Blueprint"
 eyecatch: "/images/hugo/hugo.png"
 draft: true
+weight: 100
 ---
 
 ## Azure Security and Compliance Blueprint
@@ -28,7 +29,7 @@ Azure Security DocumentationのPCI DSSの下は４つに別れてます
 
 2019/6/27に、Azure Blueprint(preview) に、PCI-DSS v3.2.1 blueprint を追加するというアナウンスがありました。[New PCI DSS Azure Blueprint makes compliance simpler](https://azure.microsoft.com/en-us/blog/new-pci-dss-azure-blueprint-makes-compliance-simpler/)
 
-![New PCI DSS Azure Blueprint makes compliance simpler](images/newpcidssbp01.png)
+![New PCI DSS Azure Blueprint makes compliance simpler](/images/pcidss/newpcidssbp01.png)
 
 
 ### 以下Blogからの概要
