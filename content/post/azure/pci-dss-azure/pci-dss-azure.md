@@ -9,58 +9,54 @@ keywords:
   - "Blueprint"
 eyecatch: "/images/hugo/hugo.png"
 draft: true
+weight: 10
 ---
 
 ## 概要
 
-我々は、Microsoftが公開している、[PCI DSS のための PaaS Web アプリケーション](https://docs.microsoft.com/ja-jp/azure/security/blueprints/pcidss-paaswa-overview) と [Azure Security and Compliance Blueprint - automation pci-paas-webapp-ase-sqldb-appgateway-keyvault-oms](https://github.com/Azure/pci-paas-webapp-ase-sqldb-appgateway-keyvault-oms) をベースにPCI DSS 準拠のサービスを構築を行った。その時の知見を元に、PCI DSSの概要とAzure上での PCI DSS 準拠サービスの構築の知見を共有する。
+ここでは、セキュリティ視点を中心にクラウドアプリケーションの構築をする。PCI DSS 準拠のサービスを、[PCI DSS のための PaaS Web アプリケーション](https://docs.microsoft.com/ja-jp/azure/security/blueprints/pcidss-paaswa-overview) と GitHub 上に公開されているでデプロイ実装の[Azure Security and Compliance Blueprint](https://github.com/Azure/pci-paas-webapp-ase-sqldb-appgateway-keyvault-oms) をベースにおこなった。その時の知見を元に PCI DSSの概要とAzure上での PCI DSS 準拠サービスの構築の情報を共有する。
 
-<hr/>
-<NOTE>
+ここで紹介するアーキテクチャーでは、極力PaaSを使うことにしてる、それに至る背景を理解してもらうため。まずは、クラウドのセキュリティ上の利点と背景の説明し、その後、PCI DSSで要求される高度なセキュリティ基準とAzure上での実装を紹介する。
 
-冒頭に、なにかフリを置く、最後に書くかな。
 
-以下概要
-
-あらすじ
-
-ここでは、セキュリティ視点を中心にクラウドアプリケーションの構築を紹介する。まずは、クラウドのセキュリティ上の利点と背景を説明し、その後、高度なセキュリティ基準の例としてPCI DSSの概要を記述し。Azure上での実装としてPCI DSS Blueprint PaaS をもとに紹介する。
-
-下記のことがどこかに書かれるはず
-
-- クラウドでアプリケーションをホスティングすることのセキュリティ上の利点
-- 他のクラウドサービスモデルに対するサービスとしてのプラットフォーム（PaaS）のセキュリティ上の利点を評価
-- セキュリティをネットワーク中心からアイデンティティ中心のセキュリティアプローチに変更
-- 一般的なPaaSセキュリティベストプラクティスの推奨事項を実装
-
-</NOTE>
-<hr/>
+{{% alert title="TODO" color="info" %}} 
+- 済、クラウドでアプリケーションをホスティングすることのセキュリティ上の利点
+- 済、他のクラウドサービスモデルに対するサービスとしてのプラットフォーム（PaaS）のセキュリティ上の利点を評価
+- 未、セキュリティをネットワーク中心からアイデンティティ中心のセキュリティアプローチに変更
+- 未、一般的なPaaSセキュリティベストプラクティスの推奨事項を実装
+{{% /alert %}}
 
 ## クラウドのセキュリティ上の利点
 
-まず最初に重要なことは、クラウドのセキュリティ上の利点を理解することだ。この利点を活かすことができるかどうかで大きく変わってくる。
+まず最初に重要なことは、クラウドのセキュリティ上の利点を理解することだ。この利点を活かすことができるかどうかで、プロジェクトの行く末は大きく変わってくる。
 
-オンプレミス環境では、ユーザーが物理層（データセンター、ハードウェア、ネットワーク）、仮想化レイヤーからアプリケーションまですべてのスタックを所有している。攻撃者はすべてのレイヤーの脆弱性を悪用することができ、ユーザー組織はリソースをセキュリティ保全に投資する必要がある。ここで重要なのは、セキュリティ投資はビジネスリスクとのバランスで決定される限られたリソースであることだ。
+オンプレミス環境では、ユーザーが物理層（データセンター、ハードウェア、ネットワーク）、仮想化レイヤーからアプリケーションまですべてのスタックを所有している。攻撃者はすべてのレイヤーの脆弱性を悪用することができ、ユーザーはリソースを全レイヤーのセキュリティ保全に投資する必要がある。ここで重要なのは、セキュリティ投資はビジネスリスクとのバランスで決定される限られたリソースであることだ。
 
-ユーザーは、クラウドにアプリケーションをホストすることで、クラウドベースのセキュリティ機能を利用して脅威の検出と対応にかかる時間を短縮することができ、責任をクラウドプロバイダーに移すことで、ユーザーはより広い範囲のセキュリティ保全を得ることができる。そして、責任範囲にセキュリティリソースを集中、もしくは予算を他のビジネス優先事項に割り当ることが可能となる。
+クラウドにアプリケーションをホストすることで、クラウドベースのセキュリティ機能を利用して脅威の検出と対応にかかる時間を短縮することができ、責任をクラウドプロバイダーに移すことで、ユーザーはクラウドプロバイダーと責任を分担することができる。それによって、ユーザは自己の責任範囲にセキュリティリソースを集中、もしくは予算を他のビジネス優先事項に割り当ることが可能となる。
 
 ![Cloud security advantages](https://docs.microsoft.com/en-us/azure/security/media/security-paas-deployments/advantages-of-cloud.png)
 
-## Division of responsibility
+{{% alert title="TODO" color="info" %}} 
+図は書き直すか、どのからの引用なのかを明記するかの、どちらかが必要。書き直すにしても、関連リンクがほしい。MSのドキュメントは更新されてしまうので、書き直さない場合でもローカルにコピーしたほうが良い。以下同様。
+{{% /alert %}}
 
-クラウドプロバイダーとの責任分担を理解することが重要だ。オンプレミスではスタック全体を所有しているが、クラウドでは、一部の責任がクラウドプロバイダー(Microsoft)に移転する。どのような責任分担となるのかは、下記のresponsibility matrixを見てほしい。ユーザー(青)と、Microsoft(灰色)が担当しているSaaS、PaaS、およびIaaSの展開におけるスタックの領域を表している。
+全スタック（レイヤー）を保有するか、必要な一部を保有するかは重要な観点だ。時として、クラウドプロバイダーが提供するものとユーザーの必要要件にはギャップがある。そのギャプを分析しユーザがコントロール可能な、ビジネス要件、アーキテクチャー、実装、運用などのレイヤーでこ対応することができるかどうかを判断する必要がある。
+
+## 共同責任モデル
+
+さらにデプロイモデルと責任分担について復習する。ユーザーとクラウドプロバイダーとの間の責任分担を理解することは非常に重要だ。オンプレミスではスタック全体を所有しているが、クラウドでは、スタックの一部はクラウドプロバイダーによって提供される。そのため、一部の責任がクラウドプロバイダー(Microsoft)に移転する。どのような責任分担となるのかは、下記の responsibility matrix を見てほしい。SaaS、PaaS、およびIaaSの展開おいて、どのスタック領域がユーザー(青)と、Microsoft(灰色)のどちらの担当になるのかを表している。
 
 ![responsibility matrix](https://docs.microsoft.com/en-us/azure/security/media/security-paas-deployments/responsibility-zones.png)
 
-この図を下から見ていくと、物理レイヤーは、クラウドプロバイダーの責務となり、その上はクラウドプロバイダーとユーザーの共同責任、さらに上はユーザーの責任となっている。共同責任の部分は、展開モデルによって責任分担の範囲にバリエーションがあり、IaaSではユーザ責任部分が多くなり、SaaSではクラウドプロバイダーの責任部分が多くなる。限られたセキュリティーリソースの有効利用という観点では、SaaS,PaaS、IaaSの順で有効でいうことがわかる。ここでは、サービスを提供するにあたって、サービス要件の充足とユーザーの責任分担を最小化のバランスを考慮しアーキテクチャを構築する。<NOTE>コンテナについて書くべくかな</NOTE>
+この図を下から見ていくと、物理レイヤーは、クラウドプロバイダーの責務となり、その上はクラウドプロバイダーとユーザーの共同責任、さらに上はユーザーの責任となっている。共同責任の部分は、展開モデルによって責任分担の範囲にバリエーションがあり、IaaSではユーザ責任部分が多くなり、SaaSではクラウドプロバイダーの責任部分が多くなる。限られたセキュリティーリソースの有効利用という観点では、SaaS,PaaS、IaaSの順で有効でいうことがわかる。ここでは、サービスを提供するにあたって、サービス要件の充足とユーザーの責任分担を最小化のバランスを考慮しアーキテクチャを構築する。
 
 ## PCI DSS 3.2 の概要とAzureでの実装
 
 > PCIデータセキュリティスタンダード（PCI DSS：Payment Card Industry Data Security Standard）は、 クレジットカード情報および取り引き情報を保護するために2004年12月、JCB・American Express・Discover・マスターカード・VISAの国際ペイメントブランド5社が共同で策定した、クレジット業界におけるグローバルセキュリティ基準である。
 
-[Wikipedia: PCIデータセキュリティスタンダード](https://ja.wikipedia.org/wiki/PCI%E3%83%87%E3%83%BC%E3%82%BF%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89)
+[Wikipedia: PCIデータセキュリティスタンダード](https://ja.wikipedia.org/wiki/PCI%E3%83%87%E3%83%BC%E3%82%BF%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89) より
 
-現在は、PCI DSS 3.2.1 が最新で、セキュアなサービスを構築する上で必要なことのエッセンスが凝縮している。PCI DSSからは、セキュアなサービスと現実的なセキュリティへの取り組みのバランスを学ぶことができる。これは、PCI DSSはクレジットカードブランドが、クレジットカード番号を使った決済の手数料でビジネスをするという自分たちのビジネスモデルを守るために策定したセキュリティ基準であることから生まれた結果だ。クレジットカードでの取引がが減るほど非現実的（実装コストが高い）なセキュリティを要求すると手数料ビジネスという彼らのビジネスモデルが成立しない。また、クレジットカードの信頼性が失われるほど不正利用が増えた場合も同様にユーザーのカード利用が減ることが予想される。この２つの問題を現実的な路線で収束させるのことは、PCI DSS（カウンシル）に期待される役目であり、PCIデータセキュリティスタンダードはその成果物だ。また、このバランスは社会的な状況によって変動する。
+現在の最新は、PCI DSS 3.2.1。これには、セキュアなサービスを構築する上で必要なことのエッセンスが凝縮している。ここからは、セキュアなサービスと現実的なセキュリティへの取り組みのバランスを学ぶことができる。これは、PCI DSSはクレジットカードブランドが、クレジットカード番号を使った決済の手数料でビジネスをするという国際ペイメントブランドが、自分たちのビジネスモデルを守るために策定した "セキュリティ基準" であることから生まれた結果だ。国際ペイメントブランドとしては、クレジットカードでの取引がが減るほど非現実的（実装コストが高い）なセキュリティを要求すると手数料ビジネスという彼らのビジネスモデルが成立しない。また、クレジットカードの信頼性が失われるほど不正利用が増えた場合もユーザーのカード利用が減ることが予想され不利益となる。この２つの問題を現実的な路線で収束させるのことが、PCI DSS（カウンシル）に期待される役目であり、PCIデータセキュリティスタンダードはその成果物だ。このバランスは社会的な状況によって変動するため、定期的に内容は更新されている。
 
 上記のことを踏まえ、現時点でPCI DSSでなにが求められいるのかと、Azure PCI DSS Blueprint PaaSでの実装を解説する、随時元の規格（PCI DSS)を参照しながら読んで欲しい。
 
@@ -251,51 +247,3 @@ https://docs.microsoft.com/ja-jp/azure/log-analytics/log-analytics-data-security
 
 Azure Blueprintは、どうやらシステム的に対応しようとしているようだけど、まだ出来てない感じ
 
-## 参考
-
-参考リンク
-
-### Azure Security and Compliance Blueprint
-
-Azure Security DocumentationのPCI DSSの下は４つに別れてます
-
-- [Data analytics/Analytics for PCI DSS](https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-analytics-overview)
-- [Data warehouse/Data Warehouse for PCI DSS](https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-dw-overview)
-- [IaaS web application/IaaS Web Application for PCI DSS](https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-iaaswa-overview)
-- [PaaS web application/PaaS Web Application for PCI DSS](https://docs.microsoft.com/en-us/azure/security/blueprints/pcidss-paaswa-overview)
-
-## まとまったドキュメント(PDF)の場所
-
-[Azure セキュリティおよびコンプライアンス PCI DSS Blueprint](https://servicetrust.microsoft.com/ViewPage/PCIBlueprint)
-
-## 2019/6/27 の PCI DSS Azure Blueprint のBlog
-
-2019/6/27に、Azure Blueprint(preview) に、PCI-DSS v3.2.1 blueprint を追加するというアナウンスがありました。[New PCI DSS Azure Blueprint makes compliance simpler](https://azure.microsoft.com/en-us/blog/new-pci-dss-azure-blueprint-makes-compliance-simpler/)
-
-![New PCI DSS Azure Blueprint makes compliance simpler](/images/pcidss/newpcidssbp01.png)
-
-
-### 以下Blogからの概要です
-
-Azure Blueprintsの入った、PCI-DSS v3.2.1のBlueprints では下記のPCI DSS コントロールへのマッピングが含まれている。
-
-- 職務の分離: 購読所有者の権限を管理
-- ネットワークおよびネットワークサービスへのアクセス: Azureリソースにアクセスできるユーザーを管理するための役割ベースのアクセス制御（RBAC）の実装
-- ユーザの秘密認証情報の管理: 多要素認証が有効になっていないアカウントを監査
-- ユーザーアクセス権の確認: レビュー用に優先順位を付ける必要があるアカウント（監査対象アカウント、昇格された権限を持つ外部アカウントなど）
-- アクセス権の削除または調整 購読に対する所有者権限を持つ非推奨アカウントの監査
-- 安全なログオン手順 多要素認証が有効になっていないアカウントの監査
-- パスワード管理システム: 強力なパスワードの強制
-- 暗号制御の使用に関する方針: 特定の暗号制御を実施し、弱い暗号設定の使用の監査
-- イベントとオペレータのロギング: Diagnosticログは、Azureリソース内で実行された操作についてのinsightを提供
-- 管理者とオペレータのログ: システムイベントが記録されていることの確認
-- 技術的な脆弱性の管理: 不足しているシステムアップデート、オペレーティングシステムの脆弱性、SQLの脆弱性、およびAzure Security Centerの仮想マシンの脆弱性の監視
-- ネットワーク制御: ネットワーク管理、制御、ネットワークセキュリティグループでの寛容なルールの使用を監視
-- 情報伝達の方針と手順: Azureサービスとの情報転送が安全であることの確認
-
-従来運用に任せた部分をできるだけ自動化しようという方向性を感じます。まだpreviewなので動向を見守りつつ今後に期待ですね。
-
-## その他
-
-- [What Does Shared Responsibility in the Cloud Mean?](https://blogs.msdn.microsoft.com/azuresecurity/2016/04/18/what-does-shared-responsibility-in-the-cloud-mean/)
-- [Use the Microsoft Graph Security API](https://docs.microsoft.com/en-us/graph/api/resources/security-api-overview?view=graph-rest-beta)
