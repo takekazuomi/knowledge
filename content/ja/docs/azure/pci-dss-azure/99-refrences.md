@@ -54,5 +54,6 @@ Azure Blueprintsの入った、PCI-DSS v3.2.1のBlueprints では下記のPCI DS
 
 ## その他
 
+- [Develop secure cloud applications on Azure](https://docs.microsoft.com/en-us/azure/security/abstract-develop-secure-apps)
 - [What Does Shared Responsibility in the Cloud Mean?](https://blogs.msdn.microsoft.com/azuresecurity/2016/04/18/what-does-shared-responsibility-in-the-cloud-mean/)
 - [Use the Microsoft Graph Security API](https://docs.microsoft.com/en-us/graph/api/resources/security-api-overview?view=graph-rest-beta)
