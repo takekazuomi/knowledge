@@ -1,74 +1,58 @@
-# Cayman
+# Docsy Example
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/a050ba7f-deca-43ea-9e70-677784edf90c/deploy-status)](https://app.netlify.com/sites/cayman-hugo-theme/deploys)
+[Docsy](https://github.com/google/docsy) is a Hugo theme for technical documentation sites, providing easy site navigation, structure, and more. This **Docsy Example Project** uses the Docsy theme, as well as providing a skeleton documentation structure for you to use. You can either copy this project and edit it with your own content, or use the theme in your projects like any other [Hugo theme](https://gohugo.io/themes/installing-and-using-themes/).
 
-Cayman is a clean, responsive theme for Hugo, ported from the original Jekyll Cayman Theme.
+This Docsy Example Project is hosted at [https://example.docsy.dev/](https://example.docsy.dev/).
 
-## Table of contents
+You can find detailed theme instructions in the Docsy user guide: https://docsy.dev/docs/
 
-- [Demo](#demo)
-- [Minimum Hugo version](#minimum-hugo-version)
-- [Installation](#installation)
-- [Updating](#updating)
-- [Run example site](#run-example-site)
-- [Configuration](#configuration)
-- [Favicons](#favicons)
-- [Getting help](#getting-help)
-- [Credits](#credits)
-- [License](#license)
+This is not an officially supported Google product. This project is currently maintained.
 
-## Demo
+## Cloning the Docsy Example Project
 
-https://cayman-hugo-theme.netlify.com/
+The following will give you a project that is set up and ready to use (don't forget to use `--recurse-submodules` or you won't pull down some of the code you need to generate a working site). The `hugo server` command builds and serves the site. If you just want to build the site, run `hugo` instead.
 
-## Minimum Hugo version
-
-Hugo version `0.54.0` or higher is required. View the [Hugo releases](https://github.com/gohugoio/hugo/releases) and download the binary for your OS.
-
-**Note**: The extended version of Hugo is only required if you wish to edit style-related params in your config file. This is because this theme uses Hugo Pipes and SCSS. 
-
-## Installation
-
-From the root of your site:
-
-```
-git submodule add https://github.com/zwbetz-gh/cayman-hugo-theme.git themes/cayman-hugo-theme
+```bash
+git clone --recurse-submodules --depth 1 https://github.com/google/docsy-example.git
+cd docsy-example
+hugo server
 ```
 
-## Updating
+The theme is included as a Git submodule:
 
-From the root of your site:
-
-```
-git submodule update --remote --merge
-```
-
-## Run example site
-
-From the root of `themes/cayman-hugo-theme/exampleSite`:
-
-```
-hugo server --themesDir ../..
+```bash
+▶ git submodule
+ a053131a4ebf6a59e4e8834a42368e248d98c01d themes/docsy (heads/master)
 ```
 
-## Configuration
+If you want to do SCSS edits and want to publish these, you need to install `PostCSS` (not needed for `hugo server`):
 
-Copy the `config.toml` **or** `config.yaml` from the [`exampleSite`](https://github.com/zwbetz-gh/cayman-hugo-theme/tree/master/exampleSite), then edit as desired. 
+```bash
+npm install
+```
 
-When editing the header background colors, [this site](http://uigradients.com) has some nice color combinations. 
+<!--### Cloning the Example from the Theme Project
 
-## Favicons
 
-Upload your image to [RealFaviconGenerator](https://realfavicongenerator.net/) then copy-paste the generated favicon files under `static`. 
+```bash
+git clone --recurse-submodules --depth 1 https://github.com/docsy.git
+cd tech-doc-hugo-theme/exampleSite
+HUGO_THEMESDIR="../.." hugo server
+```
 
-## Getting help
 
-If you run into an issue that isn't answered by this documentation or the [`exampleSite`](https://github.com/zwbetz-gh/cayman-hugo-theme/tree/master/exampleSite), then visit the [Hugo forum](https://discourse.gohugo.io/). The folks there are helpful and friendly. **Before** asking your question, be sure to read the [requesting help guidelines](https://discourse.gohugo.io/t/requesting-help/9132). Feel free to tag me in your question, my forum username is [@zwbetz](https://discourse.gohugo.io/u/zwbetz/summary).
+Note that the Hugo Theme Site requires the `exampleSite` to live in a subfolder of the theme itself. To avoid recursive duplication, the example site is added as a Git subtree:
 
-## Credits
+```bash
+git subtree add --prefix exampleSite https://github.com/google/docsy.git  master --squash
+```
 
-Thank you to [Jason Long](https://github.com/jasonlong) for creating the original Jekyll [Cayman Theme](https://github.com/jasonlong/cayman-theme). 
+To pull in changes, see `pull-deps.sh` script in the theme.-->
 
-## License
+## Running the website locally
 
-[Creative Commons Attribution 4.0 International](http://creativecommons.org/licenses/by/4.0/). 
+Once you've cloned the site repo, from the repo root folder, run:
+
+```
+hugo server
+```
