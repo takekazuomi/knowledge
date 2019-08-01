@@ -1,9 +1,9 @@
 ---
-title: "PCI DSS Azure PaaS"
+title: "PCI DSS Azure PaaS リライト版"
 linkTitle: "PCI DSS"
 weight: 10
 description: >
-  PCI DSS Azure 
+  PCI DSS Azure 書き直し版、前のをマージする予定。
 ---
 
 ## はじめに
