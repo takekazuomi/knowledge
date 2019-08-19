@@ -44,11 +44,15 @@ description: >
 
 {{< figure src="images/02-srmodel.png" title="図2 共有責任モデル" width="800" >}}
 
-この図では、オンプレミスとクラウド(IaaS中心、PaaS中心)でMicrosot(クラウドプロバイダー)と顧客側の責任がどのように共有され、それぞれの自己責任となる分担が変動するかをまとめています。
+この図では、オンプレミスとクラウド(IaaS中心、PaaS中心)でMicrosot(クラウドプロバイダー)と顧客側の責任がどのように共有されるか。また、利用モデルによって、責任分担がどのように変わるかをまとめています。
 
 例えば、オンプレミス環境では、ユーザーが物理層（データセンター、ハードウェア、ネットワーク）、仮想化レイヤーからアプリケーションまで全てスタックを所有しています。
-このモデルでは、すべてのレイヤーの脆弱性を攻撃者の悪⽤から ユーザー が保護する責任があります。ところがクラウドになるとその物理層は、Microsoftの責任部分となり、PCI DSSに準拠しているMicrosoftに任せる形になります。
+このモデルでは、すべてのレイヤーの脆弱性を攻撃者の悪⽤から ユーザー が保護する責任があります。ところがクラウドになるとその物理層は、Microsoftの責任部分となり、[PCI DSSに準拠している Microsoft](#mspicdssaoc)に任せる形になります。
 続いて、サーバーのOS自体については、IaaSの管理は、顧客側の責任となり、PaaSの場合はMicrosoftの責任部分が増えます。
+
+{{% pageinfo color="primary" %}}
+PCI DSSに準拠している Microsoftは、**PCI DSS 評価(AoC)** へのリンクにしたいが書き方が不明
+{{% /pageinfo %}}
 
 原則的には、物理は Microsoft の責任で、アプリケーションは顧客の責任、その間にあるOSやミドルウェアは、IaaSだと顧客責任が多くなり、PaaS/SaaS だと顧客責任が少なくなると⾔った構成になっています。
 この点からも PaaS/SaaS を活用したほうが、顧客側の責任範囲が小さくなり、アプリケーション自体のセキュリティ対策に集中できるというメリットが非常に大きいといえます。
@@ -68,33 +72,32 @@ description: >
 
 PCI DSSに対応するアーキテクチャをゼロから考える必要はありません。Microsoftから、[PCI DSS のための PaaS Web アプリケーション](https://docs.microsoft.com/ja-jp/azure/security/blueprints/pcidss-paaswa-overview)(以下 本システムと呼びます) というドキュメントが公開されており、我々もそれを参考にしています。
 
-本システム は、下記のような構成になっています。我々が構築した実際のサイトはさらに複雑ですが、基本的な考え⽅は同じです。
+本システム は、下記のような構成になっています。我々が構築した実際のサイトは企業ネットワークとのExpressRoute接続があるなど、もっと複雑な構成ですが、基本的な考え⽅は同じです。
 
 {{< figure src="images/03-arch.png" title="図3 Azure PCI DSS アークテクチャー" width="600" >}}
 
 本システム の構成を簡単に説明します。まず、システム全体は[仮想ネットワーク](https://docs.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-overview)に展開されます。左側のフロントから説明すると、公開エンドポイントを Applicaiton Gateway + WAFで保護し、Internal LB経由で、AppService Environment (ASE)に接続します。
 
-アプリケーションはASEに展開され、バックエンドの[SQL Database](https://azure.microsoft.com/en-in/services/sql-database/)にデータを保存します。データベースとの通信は、暗号化され、[Virtual Network Service Endpoints](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview) でエンドポイントを保護します。企業ネットワークとは[Express Route](https://azure.microsoft.com/ja-jp/services/expressroute/)で接続され、特定のシステム（システム連携相⼿）のみとの通信を許可します。
-仮想ネットワーク内へのアクセスは、運⽤管理⽤に踏み台サーバー(Bastion)が設置し、踏み台サーバーへのアクセスはExpress Route経由で特定の端末からのみのアクセスに制限された環境とします。そして、ログ、メトリックは、[Azure
+アプリケーションはASEに展開され、バックエンドの[SQL Database](https://azure.microsoft.com/en-in/services/sql-database/)にデータを保存します。データベースとの通信は、暗号化され、[Virtual Network Service Endpoints](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview) でエンドポイントを保護します。企業ネットワークとは[Express Route](https://azure.microsoft.com/ja-jp/services/expressroute/)で接続され、システム連携のため特定のシステム（システム連携相⼿）との通信を許可しています。また、運⽤管理⽤に踏み台サーバー(Bastion)が設置され、踏み台サーバーへのアクセスはExpress Route経由で特定の端末からのみのアクセスに制限された環境とします。そして、ログ、メトリックは、[Azure
 Monitor](https://azure.microsoft.com/ja-jp/services/monitor/)に集約します。
 
 システムは、仮想ネットワーク内の、[Network Security Group(NSG)](https://docs.microsoft.com/en-us/azure/virtual-network/security-overview)で保護されたサブネット内にコンポーネント毎に展開されます。
 
-そして、NSGではコンポーネント間の必要な通信だけを許可します。この分離⽅針は、PCI DSSで求められているものよりも厳格ですが、Azureでは追加コストもそれほど⾼く無く容易に実装できます。
+そして、NSGではコンポーネント間の必要な通信だけを許可します。この分離⽅針は、PCI DSSで求められているものよりも厳格ですが、Azureでは追加コストも低く容易に実装できるため積極的に活用しています。
 
 本環境を構築するためのリソースは、GitHubで公開されています。[Securing PaaS deployments](https://docs.microsoft.com/en-us/azure/security/security-paas-deployments)。スタートとして参考にしてください。
 
 ## PCI DSS 3.2 の概要
 
-PCI DSS 3.2について、簡単に概要を説明します。詳細は、[PCI Security Standards Council](https://www.pcisecuritystandards.org/about_us/) がドキュメントを公開しています。[https://www.pcisecuritystandards.org/document_library](https://www.pcisecuritystandards.org/document_library) からダウンロードして確認してください。
-
 > PCIデータセキュリティスタンダード（PCI DSS：Payment Card Industry Data Security Standard）は、 クレジットカード情報および取り引き情報を保護するために2004年12月、JCB・American Express・Discover・マスターカード・VISAの国際ペイメントブランド5社が共同で策定した、クレジット業界におけるグローバルセキュリティ基準である。
+
+ここで、既に話が出ている、PCI DSS 3.2について簡単に概要を説明します。詳細は、[PCI Security Standards Council](https://www.pcisecuritystandards.org/about_us/) がドキュメントを [https://www.pcisecuritystandards.org/document_library](https://www.pcisecuritystandards.org/document_library) で公開していますので原典をダウンロードして確認してください。
 
 [Wikipedia: PCIデータセキュリティスタンダード](https://ja.wikipedia.org/wiki/PCI%E3%83%87%E3%83%BC%E3%82%BF%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89) より
 
-現在の最新は、PCI DSS 3.2.1です。PCI DSSには、セキュアなサービスを構築する上で必要なことのエッセンスが凝縮しています。クレジットカードを扱うすべての組織が守るべきセキュリティ基準であるというだけでなく、すべてのサービス事業者は、ここから、セキュアなサービスと現実的なセキュリティへの取り組みのバランスを学ぶことができます。
+PCI DSS 3.2.1 が、現在の最新です。PCI DSSには、セキュアなサービスを構築する上で必要なことのエッセンスが凝縮しています。クレジットカードを扱うすべての組織が守るべきセキュリティ基準であるというだけでなく、すべてのサービス事業者は、ここから、セキュアなサービスと現実的なセキュリティへの取り組みとバランスを学ぶことができます。
 
-これは、PCI DSSはクレジットカードブランドが、クレジットカード番号を使った決済の手数料でビジネスをするという自分たちのビジネスモデルを守るために策定した **"セキュリティ基準"** であることから生まれた結果です。国際ペイメントブランドとしては、クレジットカードでの取引が減るほど高度（実装コストが高い）なセキュリティを要求すると手数料ビジネスという彼らのビジネスモデルの不利益となります。また、セキュリティ基準を低くした結果不正利用が増えた場合にも、クレジットカードの信頼性が失われ、ユーザーのカード利用が減ります。つまり、セキュリティ基準は高過ぎても、低すぎてもビジネス的な不利益となるという典型的事例の中で制定されたものです。この２つの問題を現実的な路線で収束させることが、PCI Security Standards Council に期待される役目であり、PCIデータセキュリティスタンダード(PCI DSS)はその成果物です。このバランスは社会的な状況によって変動するため、定期的に内容は更新されています。
+これは、PCI DSSはクレジットカードブランドが、クレジットカード番号を使った決済の手数料でビジネスをするという自分たちのビジネスモデルを守るために策定した **"セキュリティ基準"** であることから生まれた結果です。国際ペイメントブランドとしては、クレジットカードでの取引が減るほど高度な（実装コストが高い）セキュリティを要求すると手数料ビジネスという彼らのビジネスモデルの不利益となります。また、セキュリティ基準を低くした結果不正利用が増えた場合にも、クレジットカードの信頼性が失われ、ユーザーのカード利用が減ります。つまり、セキュリティ基準は高過ぎても、低すぎてもビジネス的な不利益となるという典型的事例の中で制定されたものです。この２つの問題を現実的な路線で収束させることが、PCI Security Standards Council に期待される役目であり、PCIデータセキュリティスタンダード(PCI DSS)はその成果物です。このバランスは社会的な状況によって変動するため、定期的に内容は更新されています。
 
 {{% alert title="PCI DSS 評価(AoC)" color="info" %}} 
 
@@ -140,9 +143,13 @@ PCI DSS 3.2 では6カテゴリ、12要件を定めています。ここでは�
 | | 11.	セキュリティシステムおよびプロセスを定期的にテストする 
 | 情報セキュリティポリシーの維持 | 12. すべての担当者の情報セキュリティに対応するポリシーを維持する |
 
+{{% pageinfo color="primary" %}}
+TODO: なにかまとめて的なのを入れる
+{{% /pageinfo %}}
+
 ## Azureテクノロジーとセキュリティの概要
 
-情報セキュリティ (CIA) 対策の方針に当て嵌めてみると、本システムでは、下記のようなAzureのテクノロジーを実装に使っています。
+情報セキュリティ (CIA) 対策の方針に当て嵌めてみると、本システムでは、下記のようなAzureのテクノロジーを実装に使っています。それぞれのAzureでの実装とPCI DSSの要件と解説していきます。
 
 1. 認証、アクセス制御
   - Azure Active Directory、RBAC, SQL Database アクセス制御等
@@ -165,25 +172,24 @@ Azure リソースの操作は、Azure ADで認証されたオペレータが、
 
 {{< figure src="images/06-aadrbac.png" title="図5 AAD/RBAC/Resources" width="600">}}
 
-ここで、重要なのは、ネットワーク設定、サーバー設定などのインフラ作業が、認証とアクセスコントロールに基づいて行われ、操作履歴が監査ログとして保存できること、さらに自動化（コード化）可能なことです。
+ここで、重要なのは、ネットワーク設定、サーバー設定などのインフラ作業が、認証とアクセスコントロールに基づいて行われ、操作履歴が監査ログとして保存できること、さらに自動化（コード化）可能なことです。これらの特徴は、PCI DSS要件の実装を助けてくれます。
+
+### 踏み台サーバー
+
+企業ネットワークからの運用業務のアクセスの管理のため踏み台サーバーを置いています。運用操作は必ず踏み台サーバーを経由することで、運用管理者の認証とアクセスを制御を実現します。必要な場合は、踏み台サーバから、データーベースに接続することができます。その場合も、オペレータの権限で、参照可能なテーブルやカラムを制限するなどが可能です。このあたりの制限は運用要件に応じて決めます。さらに、SQL Databaseの監査を併用することで、広いカバレッジの監査を実装しています。
+
+{{< figure src="images/07-bastin.png" title="図6 踏み台サーバー" width="600">}}
 
 ### PCI DSS 要件との関連
 
-この部分が、PCI DSSのどの部分に該当するかの概略を説明します。
-
 PCI DSS 3.2 では、要件7と8が認証とアクセス制御に相当します。そこでは、必要最低限のアクセス許可とすること、アカウントは共有せず、必ず個別のアカウントを割り当てること、IDパスワードの適切な管理などが要求されています。
 
-本システムでは、業務アカウントには、Azure ADを使い。各個人に個別のアカウントを発行、RBACで必要最低限のアクセスに制限することで要件を満たしています。
+本システムでは、業務アカウントには、Azure ADを使い。各個人に個別のアカウントを発行、RBACで必要最低限のアクセスに制限することで要件を満たします。
 
 要件9は、物理的なアクセス制御に関するものです。Azure では、物理アクセスは許可されておらず、[Azure REST API](https://docs.microsoft.com/en-us/rest/api/azure/)経由でのリソースの操作となります。APIは、認証とアクセス制御に従います。これは、ID管理は顧客責任で、APIのアクセス制御はクラウドプロバイダーの責務となる、共同責任の一例です。
 
 要件10のカード会員データの監査ログ管理に関連する要件は、Activity Log 並びに、業務アカウントでの操作履歴を、[Log Analytics](https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/get-started-portal) に監査上必要な期間保存することで満たしています。
 
-### 踏み台サーバー
-
-企業ネットワークからの運用業務のアクセスの管理のため踏み台サーバーを置いています。運用操作は必ず踏み台サーバーを経由することで、運用管理者の認証とアクセスを制御を実現します。必要な場合は、踏み台サーバから、データーベースに接続することができます。その場合も、オペレータの権限で、参照可能なテーブルやカラムを制限するなどが可能しています。これは、運用要件に応じて決めます。この場合に置いても、SQL Databaseの監査を併用することで、広いカバレッジの監査を実装することができます。
-
-{{< figure src="images/07-bastin.png" title="図6 踏み台サーバー" width="600">}}
 
 ### まとめ
 
@@ -206,7 +212,7 @@ PCI DSS 3.2 では、要件7と8が認証とアクセス制御に相当します
 
 ## 2. 不正アクセス(Unauthorized Access)防止
 
-不正アクセス(Unauthorized Access)、権限のないアクセスの点においてAzureと従来のオンプレでの最も大きな違いは。Azure 上には、多くのマネージドなセキュリティ機構が用意されているということです。サービスとして用意されているものを利用することで、すべて自分で用意するオンプレと比べて、顧客責務部分が限定され、複数のセキュリティ層を構成した場合の追加コストが少くなり、多層的なアーキテクチャを構築する自由度があがります。
+権限のないアクセス（Unauthorized Access）の防止においてAzureと従来のオンプレでの最も大きな違いは。Azure 上では、多くのマネージドなセキュリティ機構が用意されており、サービスとして用意されているものを利用することで、多層防御が構築できると言う点です。すべて自分で用意するオンプレと比べて、顧客責務部分が限定され、複数のセキュリティ層を構成した場合の追加コストが少くなり、多層的なアーキテクチャを構築する自由度があがります。
 
 本システムでは、ネットワーク分離、セキュリティパッチの適応、暗号化などのセキュリティ技術を用いて多層防御(Definse in depth)を構成しています。異なったセキュリティ技術で階層的な防御層を構築することで、ある技術で見逃された攻撃が別の技術で見逃されないようにし、機密データ暴露までの時間を稼ぎます。多層防御と監視を組み合わせることで、効果的な不正アクセス防止を実装することができます。
 
@@ -219,26 +225,29 @@ PCI DSS 3.2 では、要件7と8が認証とアクセス制御に相当します
 
 {{< figure src="images/10-defense_in_depth_layersl.png" title="図7 Definse in depth" width="400" >}}
 
+{{% pageinfo color="primary" %}}
+TODO:図の説明が無い
+{{% /pageinfo %}}
+
 本システムでは、下記の用に、ネットワーク通信を制限、既知の脆弱性に対する対策、データの暗号化の多段防衛としています。
 
 - ネットワーク分離
   - Azure Load Balancer のポート制限
-  - VNetにサービスを配備する
-  - 役務毎にサブネットを割り当てる
-  - サブネット間の通信はNSGで制限し、必要な通信だけを許可する
+  - VNetへのサービス配置
+  - 役務毎のサブネットを割当て
+  - サブネット間の通信のNSG制限
  
 - 既知の脆弱性からの防御
   - WAF(Application Gateway)
   - セキュリティパッチの自動化（PaaS）
 
-- データは暗号化して保存する
-  - 鍵管理はKey Vaultを利用する
-  - SQL Database の暗号化を利用する
-
+- データの暗号化保存
+  - 鍵管理はKey Vaultを利用
+  - SQL Database の暗号化を利用
 
 ### ネットワーク分離と通信制限
 
-ネットワーク分離は、コストパフォマンスに優れた防御層として広く使われています。Azure では、マネージドサービスを使って分離を実装することができるので、追加コストを少なく抑えることができます。今回は、VNetにPaaSをデプロイするために、[App Service Environment(ASE)](https://docs.microsoft.com/en-us/azure/app-service/environment/intro)を利用していますが、App Serviceの[Azure Virtual Network Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet) も検討してください。
+ネットワーク分離はよく使われる防御層なので、もう少し説明します。ネットワーク分離は、コストパフォマンスに優れた防御層として広く使われています。Azure では、マネージドサービスを使って分離を実装することができるので、追加コストを比較的少なく抑えることができます。今回は、VNetにPaaSをデプロイするために、[App Service Environment(ASE)](https://docs.microsoft.com/en-us/azure/app-service/environment/intro)を利用していますが、App Serviceの[Azure Virtual Network Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet) も検討してください。
 
 分離は下記のようなレイヤーで実装しています。
 
@@ -247,11 +256,13 @@ PCI DSS 3.2 では、要件7と8が認証とアクセス制御に相当します
 - Subnet 間通信を Network Security Group (NSG)で必要なものだけに制限
 - SQL Database等のマネージド・サービスとの通信は、Virtual Network Service Endpoints で制限
 
+Azureでは、VNetにデプロイすることができるサービス、VNet Service Endpoint でアクセス制御できるサビース、それらをサポートしていないサービスがあるので設計時には確認が必要です。また、サービスでサポートしているサービスレベルの低いものはVNet Integrationがサポートされていない場合があります。
+
 ### 暗号化 ー鍵管理
 
 暗号化の課題は、暗号化アルゴリズムの選択と鍵管理にあります。Azureでは、業界標準の暗号化アルゴリズムと、HSMをバックエンドに持った [Azure Key Vault](https://docs.microsoft.com/en-in/azure/key-vault/key-vault-overview) が提供されています。
 
-暗号化アルゴリズムは、適切な選択をすることで解決できる問題ですが、従来から大きな課題だったのは、鍵管理でした。鍵管理には、適切なアクセス制御と監査ログが必要です。Key Vaultを利用すると、管理プレーン、データプレーンのアクセス権、監査ログの設定ができます。その上で、Key Vaultで、シークレット、鍵を一元管理することで、アプリケーションのセキュリティを向上させることができます。
+暗号化アルゴリズムは、適切な選択をすることで解決できる問題ですが、従来から大きな課題だったのは鍵管理でした。鍵管理には、適切なアクセス制御と監査ログが必要です。Key Vaultを利用すると、管理プレーン、データプレーンのアクセス権、監査ログの設定ができます。その上で、Key Vaultで、シークレット、鍵を一元管理することで、アプリケーションのセキュリティを向上させることができます。
 
 PCI DSS要件3,4では、カード会員データを保存する時に、暗号化を選択している場合のみに鍵管理プロセスが求められています、Azureでは鍵管理のコストが低いので、本システムではデータベースの接続情報、暗号化鍵、Service Principalが利用する証明書などを含めシステム上センシティブ情報となるものをKey Vaultに保存しています。鍵管理を行うセキュリティオペレータを別途設けることで、システム上のセンシティブ情報を知るスタッフを減らすことができます。これは、情報の局在化による驚異の低減という効果があります。
 
