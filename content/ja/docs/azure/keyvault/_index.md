@@ -62,7 +62,7 @@ description: >
     - No -> 6.
 4. 分離すると、機密情報を扱うケース（人員）が減らせます。さらに監査ログが取れるので、Key Vaultがお勧めです
 5. 個人情報を扱いますか。個人情報保護法、GDPRを忘れないでください
-    - Yes -> 2.
+    - Yes -> 4.
     - No -> 7.
 6. 漏洩時のビジネスインパクトとKey Vaultの追加コストを比較すると、追加コストが大きいですか？
     - Yes -> 7.
@@ -87,7 +87,7 @@ description: >
 
 しかしながら、上記の方法は古い方法と言わざる得ません、我々は、セキュリティを高めるために、センシティブ情報は分離して、Key Vault に入れることを推薦します。OWASPやCWEの推薦事項のように、Configの一部を暗号化する方法。[Encrypting Configuration File Sections Using Protected Configuration](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings-and-configuration-files#encrypting-configuration-file-sections-using-protected-configuration) や、App Setting に入れる方法より優れていて、導入もそれほど難しくありません。
 
-導入で少し敷居が高い部分は、Azure ADを使ったアクセス管理の部分ですが、一旦理解してしまえば、それほど高い敷居というわけではありません。少しのコストで大きな効果があり、Key Vault はとても良いものと言えます。
+導入で少し複雑な部分は、[Azure Active Directry](https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-whatis)(以下 Azure AD)を使ったアクセス管理の部分([後述](#アクセス管理))ですが、一旦理解してしまえば、それほど高い敷居というわけではありません。少しのコストで大きな効果があり、Key Vault はとても良いものと言えます。
 
 本稿では、以下の視点でなぜKey Vaultが重要か、どのような使い方がベストプラクティスなのかを段階を追って説明していきます。
 
