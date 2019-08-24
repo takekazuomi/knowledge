@@ -146,13 +146,13 @@ App Settings のような方法は、「アプリケーション＋設定ファ�
 
 ### Azure App Configuration の利用
 
-リソースとして構成情報を持つもう１つの新しい方法として、[Azure App Configuration (preview)](https://docs.microsoft.com/en-us/azure/azure-app-configuration/) があります。App Settingsでは、同一のWeb Site内でしか設定情報は共有できません。例えば、複数のWeb Siteから構成されたサービスや、Azure Batchなど別のリソースとは設定の共有することができません。Azure App Configuration は独立したリソースで異なったリソースから利用することができます。さらに、App Configuration には、設定ストアとしての豊富な機能の他、[Managed identities for Azure resources(MSI)](https://docs.microsoft.com/en-us/azure/azure-app-configuration/howto-integrate-azure-managed-service-identity)との統合、[保管中または転送中の完全なデータ暗号化](https://docs.microsoft.com/en-us/azure/azure-app-configuration/overview#why-use-app-configuration) が含まれておりApp Settigsより優れています。（previewですが）
+リソースとして構成情報を持つもう１つの新しい方法として、[Azure App Configuration (preview)](https://docs.microsoft.com/en-us/azure/azure-app-configuration/) があります。App Settingsでは、同一のWeb Site内の複数のインスタンスでしか設定情報は共有できず、例えば、複数のWeb Siteから構成されたサービスや、Azure Batchなど別のリソースとの間では設定の共有することができません。Azure App Configuration は独立したリソースで、異なった複数のリソースから利用することができます。さらに、App Configuration には、設定ストアとしての豊富な機能の他、[Managed identities for Azure resources(MSI)](https://docs.microsoft.com/en-us/azure/azure-app-configuration/howto-integrate-azure-managed-service-identity)との統合、[保管中または転送中の完全なデータ暗号化](https://docs.microsoft.com/en-us/azure/azure-app-configuration/overview#why-use-app-configuration) が含まれておりApp Settigsより優れています。（previewですが）
 
-App Settingsと違って、App Configrationは１つのアプリケーションで複数のApp Configrationを利用することができます。その機能とRBACを使って、センシティブ情報を入れるApp Configrationを別に設ける方法が考えられます。その場合、アクセスキーを使ったアクセス制御ではアクセスキーをどのように保護するかという問題が発生するので、MSI、あるいはService Principalを使ったアクセスをする必要があります。MSIでは、Service Principalのシークレット暴露の問題は無いのですが、１つのService Principalしか持てないという問題があります。つまり、センシティブ情報の有無で２つのApp Configrationを作成してもMSI経由で２つを切り分けてアクセスすることはできません。MSIを使わずに、自前でService Principal を使う場合は、証明書認証を使うことで複数のApp Configrationを使い分けることができますが、その証明書を保護する必要があります。App Configrationだけでは証明書を保護することはできず保護にはKey Vaultが必要です。ローカルに証明書を持っておいて、デプロイ時にApp Service等に登録することは可能ですが、結局ローカルでどう管理するかという問題が残ってしまいます。結局、App Configrationにセンシティブ情報を入れた場合、環境依存設定とセンシティブ情報の分離が不十分になってしまいます。この点については、App Settingsと同じような限界があると言えます。
+App Settingsと違って、App Configrationは１つのアプリケーションで複数のApp Configrationを利用することができます。その機能とRBACを使って、センシティブ情報を入れるApp Configrationを別に設ける方法が考えられます。その場合、アクセスキーを使ったアクセス制御ではアクセスキーをどのように保護するかという問題が発生するので、MSIを使ったアクセスが必須です。
 
 ### Azure Key Vault を使う
 
-更に進めてセキュリティ面を考慮した場合、センシティブ情報の保存には、Key Vault を使う方法を推薦します。下図のようにセンシティブ情報を分離して扱うことで、アプリケーションの開発運用担当と、センシティブ情報を扱うセキュリティ担当を分けることができます。これは、App Service + App Settings | App Configuration では出来なかったことで、センシティブ情報を知る範囲を狭めるという意味で非常に効果的です。これによって、アプリケーションの開発運用チームはセンシティブ情報を扱わなくなり、チームに要求されるセキュリティ上の負担を軽減できます。これが、センシティブ情報情報の局所化によってもたらされる利点です。
+更に進めてセキュリティ面を考慮した場合、センシティブ情報の保存は、Key Vault の利用を推薦します。下図のようにセンシティブ情報を分離して扱うことで、アプリケーションの開発運用担当と、センシティブ情報を扱うセキュリティ担当を分けることができます。これは、App Service + App Settings では出来なかったことで、センシティブ情報を知る範囲を狭めるという意味で非常に効果的です。これによって、アプリケーションの開発運用チームはセンシティブ情報を扱わなくなり、チームに要求されるセキュリティ上の負担を軽減できます。これが、センシティブ情報情報の局所化によってもたらされる利点です。
 
 <img src="images/config03.png" width="600" alt="アプリ構成センシティブ情報分離型">
 
@@ -164,6 +164,8 @@ App Settingsと違って、App Configrationは１つのアプリケーション�
 
 アプリケーションから Key Vault へのアクセスは、設定情報に、専用のService Principalを用意して自前でアクセス経路を用意するか、**Azure リソースのマネージド ID** ([Azure リソースのマネージド ID とは?](https://docs.microsoft.com/ja-jp/azure/active-directory/managed-identities-azure-resources/overview), 以下MSI)を使います。App Service では、MSIを使うのがベストプラクティスです。だたし、現時点では、すべてのAzure リソースがMSIに対応しているわけではないので注意が必要です。[Services that support managed identities for Azure resources](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/services-support-managed-identities)
 MSI 非対応リソースでは、Service Principalを使って、リソースとKey Vaultの紐付をする必要があります。（これに付いては別途）
+
+センシティブ情報を保存する別の App Configration を用意する方法もあります。その場合、現時点の App Configration は監査ログをサポートしていないので注意してください。監査、監視には別の手段を用意する必要があります。
 
 ### MSIを使ったKey Vaultへのアクセス
 
