@@ -9,19 +9,11 @@ description: >
 
 ## はじめに
 
-本稿では、アプリケーションの構成情報を、下記の３つの概念に分けて設計することを勧めています。
-
-1. 環境非依存なアプリケーション構成情報
-2. 環境依存のアプリケーション構成情報
-3. センシティブ情報
-
-１は、アプリケーションに固有の情報で通常ローカルファイルを使います。２の環境依存の設定は、アプリケーションと切り離し別のリソース(App Settings、App Configuration)で扱います。3のセンシティブ情報に関しては監査ログが必要な場合はKey Vault必須となります。監査ログが要件上必須でない場合も、Key Vaultの利用は全体的なセキュリティレベルを上げるのでお薦めします。Key Vaultを使う場合は、センシティブ情報だけをKey Vaultに保存し、Key Vaultには適切なアクセス権を設定して、監査ログを有効にしてください。このように構成情報を３つに分けて、センシティブ情報をKey Vaultに保存するのが本稿のベストプラクティスです。
-
-本稿では、アプリケーションで使われるセンシティブ情報(パスワード等)の保護のベストプラクティスについて書いています。以降では、アプリケーションの設定情報を外部に保持する複数の方法について比較し、その後センシティブ情報をKey Vaultに保存する利点を論じています。
+本稿は、アプリケーションで使われるセンシティブ情報(パスワード等)の保護のベストプラクティスについて書いています。以下に、アプリケーションの設定情報を外部に保持する複数の方法について比較し、その後センシティブ情報をKey Vaultに保存する利点を論じています。そして、[Key Vault](https://docs.microsoft.com/en-in/azure/key-vault/key-vault-overview)の利点を構成する重要な点として、アクセス制御と、監査について記述します。
 
 ### 方式比較
 
-設定情報を外部に保つ方法として、ローカルファイル(Web.config/appsettins.json)、App Service のApp Settings, App Configuration, Key Vault, Storage Blobの５つを比較しました。後者４つはAzure 固有の機能ですが、同等のものは各種クラウド環境に存在します。
+設定情報を外部に保つ方法として、ローカルファイル(Web.config/appsettins.json)、App Service の[App Settings](https://docs.microsoft.com/en-us/azure/app-service/configure-common#configure-app-settings), [App Configuration](https://docs.microsoft.com/en-us/azure/azure-app-configuration/overview), [Key Vault](https://docs.microsoft.com/en-in/azure/key-vault/key-vault-overview), [Blob Storage](https://docs.microsoft.com/ja-jp/azure/storage/blobs/storage-blobs-overview)の５つを比較しました。後者４つはAzure 固有の機能ですが、同等のものは各種クラウド環境に存在します。
 
 ここでは下記の点を比較のポイントとしました。
 
@@ -38,42 +30,28 @@ description: >
 |App Settings|◯|✕|✕|△|✕|△|※2|
 |App Configuration|◯|◯|✕|◯|◯|◯|※3|
 |Key Vault|◯|◯|◯|◯|◯|✕||
-|Storage Blob|◯|△|✕|◯|✕|✕|※4|
+|Blob Storage|◯|△|✕|◯|✕|✕|※4|
 
 - ※1 管理はSCMで実施。App Serviceではaspnet_regiis.exeによる暗号化は利用できず。独自実装が必要
-- ※2 共有は、Web Apps/Web Job/Functions等で同一Website内のみ。変更した場合はサイトが再起動される
+- ※2 共有は、Web Apps/Web Job/Functions等で同一WebSite内のみ。変更した場合はサイトが再起動される
 - ※3 ACLはrw/roのアクセスキー、あるいはAADとRBACで制限可能
 - ※4 独自実装で作れば全て可能だが、本稿ではBlobの機能のみで扱う
 
-これを見ると、App ConfigurationとKey Vaultの間の差は、監査ログと変更通知だけで、あまり機能面で大きな差が無いことがわかります。
+これを見ると、App ConfigurationとKey Vaultの間の差は、監査ログと変更通知だけで、機能面では、大きな差が無いことがわかります。
 
-### 選択フロー
+### 使い分けの基本的な考え方
 
-どのような場合に、どの方法を使うのかを簡単なフローにしました。参考にしてください。６が一番重要な選択肢です、事前に[リスク分析](https://ja.wikipedia.org/wiki/%E6%83%85%E5%A0%B1%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E3%83%9E%E3%83%8D%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0#%E3%83%AA%E3%82%B9%E3%82%AF%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95)を行ってください。
+まず、システムが稼働する業界や企業で定義されているコンプライアンス、ガバナンスに従で定義されている機密情報を確認します。
+その中で、機密情報を扱う場合に、特別なコントロール（NDA、物理セキュリティ等）を要求されている場合は、監査ログが取れる Key Vault 一択になります。
+監査ログが不要で、複数アプリ・インスタンスで共有したいなら、App Conguration、App Settingsという選択肢があります。
 
-1. アプリケーションが従うべき、コンプライアンス、ガバナンスがありますか？
-    - Yes -> 2.
-    - No -> 5.
-2. コンプライアンス、ガバナンスで機密情報が定義されていますか？
-    - Yes -> 3.
-    - No -> 5.
-3. 開発運用で機密情報を扱う場合に、特別なコントロール（NDA、物理セキュリティ等）を要求されていますか？
-    - Yes -> 4.
-    - No -> 6.
-4. 分離すると、機密情報を扱うケース（人員）が減らせます。さらに監査ログが取れるので、Key Vaultがお勧めです
-5. 個人情報を扱いますか。個人情報保護法、GDPRを忘れないでください
-    - Yes -> 4.
-    - No -> 7.
-6. 漏洩時のビジネスインパクトとKey Vaultの追加コストを比較すると、追加コストが大きいですか？
-    - Yes -> 7.
-    - No -> 4.
-7. 複数アプリで共有したいなら、App Configuration、App Service等で必要無ければ、App Settins がお勧めです
+環境依存な設定情報には、機密と機密ではないものが両方含まれています。センシティブ情報と定義したデータへのアクセスに必要な設定情報は監査可能なKey Vaultに収容するのがベストプラクティスです。
 
 ## センシティブ情報の保護にKey Vaultを使う
 
-アプリケーションにはパスワード(SQL Database等)、アクセスキー（Storge、Redis等）など様々なセンシティブ情報(Sensitive Information)があります。これらは、開発、本番など環境によって異なったものが使われ、ソースコードと別に管理される必要があります。この情報の漏洩は、データベースなど保護対象の機密情報（個人情報やクレジットカード情報等）が保存されたデータストアからの機密情報の漏洩に繋がる危険性があります。
+アプリケーションにはパスワード(SQL Database等)、アクセスキー（Storge、Redis等）など様々なセンシティブ情報(Sensitive Information)があります。これらは、開発、本番など環境によって異なったものが使われ、ソースコードと別に管理される必要があります。そして、これらの情報の漏洩は、データベースなどに保存された保護対象の機密情報（個人情報やクレジットカード情報等）の漏洩に繋がる危険性があります。
 
-情報漏洩は、相変わらずセキュリティインシデントの上位にあります。[OWASP Top 10-2017/A3-Sensitive Data Exposure](https://www.owasp.org/index.php/Top_10-2017_A3-Sensitive_Data_Exposure) OWASP Cheat Sheet の、.NET securityでは、防衛方法として設定ファイルの暗号化が推薦されています。
+情報漏洩は、相変わらずセキュリティインシデントの上位にあり、[OWASP Top 10-2017/A3-Sensitive Data Exposure](https://www.owasp.org/index.php/Top_10-2017_A3-Sensitive_Data_Exposure) OWASP Cheat Sheet の、.NET securityでは、漏洩の防衛方法として設定ファイルの暗号化が推薦されています。また、CWEでも同様の指摘がされています。
 
 - OWASP Cheat Sheet の、.NET securityから
 
@@ -85,11 +63,11 @@ description: >
     - [CWE-260: Password in Configuration File](https://cwe.mitre.org/data/definitions/260.html)
     - [CWE-312: Cleartext Storage of Sensitive Information](https://cwe.mitre.org/data/definitions/312.html)
 
-しかしながら、上記の方法は古い方法と言わざる得ません、我々は、セキュリティを高めるために、センシティブ情報は分離して、Key Vault に入れることを推薦します。OWASPやCWEの推薦事項のように、Configの一部を暗号化する方法。[Encrypting Configuration File Sections Using Protected Configuration](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings-and-configuration-files#encrypting-configuration-file-sections-using-protected-configuration) や、App Setting に入れる方法より優れていて、導入もそれほど難しくありません。
+しかしながら、上記のOWASPやCWEで提案されている対策はクラウドでは古い方法と言わざる得ません、我々は、セキュリティを高めるために、センシティブ情報は分離し、Key Vault に入れることを推薦します。上記の推薦事項のように、Configの一部を暗号化する方法。[Encrypting Configuration File Sections Using Protected Configuration](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings-and-configuration-files#encrypting-configuration-file-sections-using-protected-configuration) や、その他の方法より優れていて、導入もそれほど難しくありません。
 
-導入で少し複雑な部分は、[Azure Active Directry](https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-whatis)(以下 Azure AD)を使ったアクセス管理の部分([後述](#アクセス管理))ですが、一旦理解してしまえば、それほど高い敷居というわけではありません。少しのコストで大きな効果があり、Key Vault はとても良いものと言えます。
+導入で少し複雑な部分は、[Azure Active Directry](https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-whatis)(以下 Azure AD)を使ったアクセス管理の部分([後述](#アクセス管理))ですが、一旦理解してしまえば、それほど高い敷居というわけではありません。Key Vault は、少しのコストで大きな効果があります。
 
-本稿では、以下の視点でなぜKey Vaultが重要か、どのような使い方がベストプラクティスなのかを段階を追って説明していきます。
+本稿では、以下の視点でなぜKey Vaultが重要か、どのような使い方がベストプラクティスなのか、実装のコストはどの程度なのか等を段階を追って説明していきます。
 
 1. 分離：アプリケーションとセンシティブ情報は分離する
 2. 暗号化：センシティブ情報は暗号化して保存する
@@ -119,11 +97,11 @@ description: >
 
 ### App Service の App Settings
 
-より進んだ方法として、[Azure App Service](https://docs.microsoft.com/en-in/azure/app-service/overview)では、[App Settings](https://docs.microsoft.com/en-us/azure/app-service/configure-common) が用意されています。App Settingsでは、Azure Portal や、API経由 (例：[Web Apps - Get Configuration](https://docs.microsoft.com/en-us/rest/api/appservice/webapps/getconfiguration))で設定が行われ、設定内容はアプリケーション内から環境変数として参照できます。この仕組を使うと、アプリケーションのデプロイと設定を別々に行うことができるというのが大きな違いです。これは、The Twelve Factors. の [III. Config Store/config in the environment](https://12factor.net/config) でもベストプラクティスに入っている考え方です。
+より進んだ方法として、[Azure App Service](https://docs.microsoft.com/en-in/azure/app-service/overview)では、[App Settings](https://docs.microsoft.com/en-us/azure/app-service/configure-common) が用意されています。App Settingsでは、Azure Portal や、API経由 (例：[Web Apps - Get Configuration](https://docs.microsoft.com/en-us/rest/api/appservice/webapps/getconfiguration))で設定が行われ、設定内容はアプリケーション内から環境変数として参照できます。この仕組を使うと、アプリケーションのデプロイと設定を別々に行うことができるというのが大きな違いです。これは、The Twelve Factors. の [III. Config Store/config in the environment](https://12factor.net/config) でもベストプラクティスに入っている考え方でもあります。
 
 <img src="images/config02.png" width="600" alt="アプリ構成分離型">
 
-こうすると、本番や開発などの別々のWeb Siteに「App Settingsに環境固有の設定をする」、「アプリケーションをデプロイする」の２つの手順に分け、設定とデプロイを別にすることができます。また、App Settings の別の利点として、サービスが複数のインスタンスにスケールした時にも設定を一箇所で管理できるという点があります。これは、従来のシステムで要件して重要視されることは（あまり）ありませんでしたが、クラウドの利点を活かすためには重要な要件です。このようにアプリケーションと設定を分離し共有する方法は、[External Configuration Store pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/external-configuration-store) として知られています。
+こうすると、本番や開発などの別々のWeb Siteに「App Settingsに環境固有の設定をする」、「アプリケーションをデプロイする」と設定、デプロイ別の手順で分けて実行することができます。また、App Settings の別の利点として、サービスが複数のインスタンスにスケールした時にも設定を一箇所で管理できるという点があります。これは、従来のシステムで要件して重要視されることは（あまり）ありませんでしたが、クラウドの利点を活かすためには重要な要件です。このようにアプリケーションと設定を分離し共有する方法は、[External Configuration Store pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/external-configuration-store) として知られています。
 
 App Settings のような方法は、「アプリケーション＋設定ファイル」で一つのパッケージとして扱うよりも格段に優れた方法（特にクラウド環境では）ですが、セキュリティという面では、設定にセンシティブなものとそうでないものの区別が無く、設定のどこ項目を誰が見れるかなどの設定ができないという点で不十分です。この区別が無いために、設定を確認できる人＝センシティブ情報にアクセス出来る人となってしまいます。セキュリティ面から言うと、センシティブ情報にアクセスできる人は少ないほど良い（運用難易度が低い）と言えるので、この点は良くありません。
 
@@ -146,13 +124,13 @@ App Settings のような方法は、「アプリケーション＋設定ファ�
 
 ### Azure App Configuration の利用
 
-リソースとして構成情報を持つもう１つの新しい方法として、[Azure App Configuration (preview)](https://docs.microsoft.com/en-us/azure/azure-app-configuration/) があります。App Settingsでは、同一のWeb Site内の複数のインスタンスでしか設定情報は共有できず、例えば、複数のWeb Siteから構成されたサービスや、Azure Batchなど別のリソースとの間では設定の共有することができません。Azure App Configuration は独立したリソースで、異なった複数のリソースから利用することができます。さらに、App Configuration には、設定ストアとしての豊富な機能の他、[Managed identities for Azure resources(MSI)](https://docs.microsoft.com/en-us/azure/azure-app-configuration/howto-integrate-azure-managed-service-identity)との統合、[保管中または転送中の完全なデータ暗号化](https://docs.microsoft.com/en-us/azure/azure-app-configuration/overview#why-use-app-configuration) が含まれておりApp Settigsより優れています。（previewですが）
+リソースとして構成情報を持つもう１つの新しい方法として、[Azure App Configuration (preview)](https://docs.microsoft.com/en-us/azure/azure-app-configuration/) があります。App Settingsでは、同一のWeb Site内の複数のインスタンスでしか設定情報は共有できません。例えば、複数のWeb Siteから構成されたサービスや、Azure Batchなど別のリソースとの間では設定の共有することができませんでした。Azure App Configuration は独立したリソースで、異なった複数のリソースから利用することができます。さらに、App Settingsと違って、App Configrationは１つのアプリケーションで複数のApp Configrationを利用することができます。その機能とRBACを使って、センシティブ情報を入れるApp Configrationを別に設けることができます。センシティブ情報を扱う場合、アクセスキーを使ったアクセス制御ではアクセスキーをどのように保護するかという問題が発生するので、MSIを使ったアクセスが必要です。
 
-App Settingsと違って、App Configrationは１つのアプリケーションで複数のApp Configrationを利用することができます。その機能とRBACを使って、センシティブ情報を入れるApp Configrationを別に設ける方法が考えられます。その場合、アクセスキーを使ったアクセス制御ではアクセスキーをどのように保護するかという問題が発生するので、MSIを使ったアクセスが必須です。
+App Configuration には、設定ストアとしての豊富な機能の他、[Managed identities for Azure resources(MSI)](https://docs.microsoft.com/en-us/azure/azure-app-configuration/howto-integrate-azure-managed-service-identity)との統合、[保管中または転送中の完全なデータ暗号化](https://docs.microsoft.com/en-us/azure/azure-app-configuration/overview#why-use-app-configuration) が含まれており、総じてApp Settigsより優れています。（previewですが）
 
 ### Azure Key Vault を使う
 
-更に進めてセキュリティ面を考慮した場合、センシティブ情報の保存は、Key Vault の利用を推薦します。下図のようにセンシティブ情報を分離して扱うことで、アプリケーションの開発運用担当と、センシティブ情報を扱うセキュリティ担当を分けることができます。これは、App Service + App Settings では出来なかったことで、センシティブ情報を知る範囲を狭めるという意味で非常に効果的です。これによって、アプリケーションの開発運用チームはセンシティブ情報を扱わなくなり、チームに要求されるセキュリティ上の負担を軽減できます。これが、センシティブ情報情報の局所化によってもたらされる利点です。
+更に進めてセキュリティ面を考慮した場合、センシティブ情報の保存は、Key Vault の利用を推薦します。下図のようにセンシティブ情報を分離して扱うことで、アプリケーションの開発運用担当と、センシティブ情報を扱うセキュリティ担当を分けることができます。これは、App Service + App Settings では出来なかったことで、センシティブ情報を知る範囲を狭めるという意味で非常に効果的です。センシティブ情報を分離してKey Vaultに入れることによって、アプリケーションの開発運用チームはセンシティブ情報を扱わなくなり、チームに要求されるセキュリティ上の負担を軽減できます。この例では、３つに分けていますが、セキュリティ要件によってさらに分割することも検討してください。
 
 <img src="images/config03.png" width="600" alt="アプリ構成センシティブ情報分離型">
 
@@ -169,11 +147,13 @@ MSI 非対応リソースでは、Service Principalを使って、リソース�
 
 ### MSIを使ったKey Vaultへのアクセス
 
-**Azure リソースのマネージド ID (MSI)**  を使った、App SericesからのKeyVaultの利用を説明します。細部を省略して言うと、MSIは、Azureのリソースに専用のAzure ADのService Principalを作成し、他のリソースでは、そのサービスプリンシパルからのアクセスを許可することで、リソース間の信頼関係を作成する機能です。Service Principalの作成は自動的に行われ、Service PrincipalのクレデンシャルはAzure側で管理されるため非常に扱いやすい仕組みになっています。MSIを使うことで、アプリケーションからは、簡単に自身のリソースに紐付いたService Principalのトークンを取得でき、それを使って許可されたリソースを呼ぶことができます。MSI以前では、Azure ADあるいは、リソースへのアクセスは、パスワードやアカウントキーで制御されていました。MSIには、システム割当のマネージドIDとユーザー割当のマネージドIDがありますが、ここではシステム割当のマネージドIDを説明します。（現状、ユーザー割当の方は、Key Vault 側がサポートしていません）
+ここで、Key Valut を導入した場合の開発コストを再確認する意味も含めて、**Azure リソースのマネージド ID (MSI)**  を使った、App SericesからのKeyVaultの利用を説明します。細部を省略して言うと、MSIは、Azureのリソースに専用のAzure ADのService Principalを作成し、他のリソースでは、そのサービスプリンシパルからのアクセスを許可することで、リソース間の信頼関係を作成する機能です。Service Principalの作成は自動的に行われ、Service PrincipalのクレデンシャルはAzure側で管理されるため非常に扱いやすい仕組みになっています。MSIを使うことで、アプリケーションからは、簡単に自身のリソースに紐付いたService Principalのトークンを取得でき、それを使って許可されたリソースを呼ぶことができます。Azure AD + MSI以前では、リソースへのアクセスは、パスワードやアカウントキーで制御されていました。ここでのポイントは、MSIでは、それらのシークレットを扱う必要が無いという点です。
+
+MSIには、システム割当のマネージドIDとユーザー割当のマネージドIDがありますが、ここではシステム割当のマネージドIDを説明します。（現状、ユーザー割当の方は、Key Vault 側がサポートしていません）
 
 Azure Portal、Azure CLI、PowerShell、ARM template などいろいろな方法で設定できますか。再現性が高いので、ここでは、ARM template を使って手順を説明します。利用方法の詳細は、[App Service と Azure Functions でマネージド ID を使用する方法](https://docs.microsoft.com/ja-jp/azure/app-service/overview-managed-identity) を参照してください。
 
-非常に簡単に利用することがわかるように、実際の構築コードを交えながら説明していきます。サンプルコード一式は、[ここ](https://github.com/takekazuomi/keyvault-msi-sample) にあります。
+導入コストを評価し、非常に簡単に利用することがわかるように、実際の構築コードを交えながら説明していきます。サンプルコード一式は、[ここ](https://github.com/takekazuomi/keyvault-msi-sample) にあります。
 
 Web Appsの作成時に、identity プロパティに、**type": "SystemAssigned"** を指定すると、このリソースにシステム割当のマネージドIDが作成されます。
 
@@ -253,9 +233,9 @@ Web Appsの作成時に、identity プロパティに、**type": "SystemAssigned
 
 **accessPolicies** の、tenantId と objectId の設定は、reference を取得して属性を引いています。 この式を実行するためには、実態が作成されている必要があるので、dependsOnでwebSiteに依存させています。
 
-**permissions": "secrets"** に、get, list を付けています。**accessPolicies** に列挙された操作だけが許されます。ここで、listを許可しているのは、今回使った .NET Coreのライブラリが列挙操作をするためです、読むだけならば、get 操作だけで良いはずなのですが、残念です。今回も、listを付けずにハマりました。[このあたり](https://github.com/aspnet/Extensions/blob/master/src/Configuration/Config.AzureKeyVault/src/AzureKeyVaultConfigurationProvider.cs#L77)で、リストしているのが原因です。
+**permissions": "secrets"** に、get, list を付けています。**accessPolicies** に列挙された操作だけが許されます。ここで、listを許可しているのは、今回使った .NET Coreのライブラリが列挙操作をするためです、読むだけならば、get 操作だけで良いはずなのですが、残念です。よく、listを付けずにハマります。[このあたり](https://github.com/aspnet/Extensions/blob/master/src/Configuration/Config.AzureKeyVault/src/AzureKeyVaultConfigurationProvider.cs#L77)で、リストしているのが原因です。
 
-このテンプレートでは、追加でシークレットを作成しています。本番の展開で使えるかどうかは課題ですが、リソースの作成時にシークレットを作成しパラメータでもらった値を中に入れています。スクリプトでシークレットを生成し、さらにこの設定を使うと、シークレットの内容はアクセス権を持っているものだけが知っていて、後書き込み権限を誰も持っていない状態にできます。これは魅力的ではありますが、シークレットのローテーションなどを考えるとあまり実用的では無いかもしれません。
+このテンプレートでは、追加でシークレットを作成しています。本番の展開で使えるかどうかは課題ですが、リソースの作成時にシークレットを作成しパラメータでもらった値を中に入れています。スクリプトでシークレットを生成し、さらにこの設定を使うと、シークレットの内容はアクセス権を持っているものだけが知っていて、リソース作成後書き込み権限を誰も持っていない状態にできます。これは魅力的ではありますが、シークレットのローテーションなどを考えるとあまり実用的では無いかもしれません。
 
 ```json
 {
@@ -325,9 +305,9 @@ Microsoft.Extensions.Configuration 自体は、.Net Standard 2.0なので、.NET
 @Microsoft.KeyVault(SecretUri=https://myvault.vault.azure.net/secrets/mysecret/ec96f02080254f109c51a1f14cdb1931)
 ```
 
-この方法の大きな利点は、ソースコードの変更が必要無いことで、欠点は、App Settingsだけでしか使えないことと、シークレットのバージョンを指定しなければいけないことです。、また、これを使うとARM templateで記述する時に依存関係が複雑になります。
+この方法の大きな利点は、ソースコードの変更が必要無いことで、欠点は、App Settingsだけでしか使えないことと、シークレットのバージョンを指定しなければいけないことです。また、これを使うとARM templateで記述する時に依存関係が複雑になるのが少々面倒ではあります。
 
-## アクセス管理
+## アクセス制御
 
 Key Vault を安全性を高めるにはアクセスマネージメントを理解する必要があります。これが出来ていないと、大きな穴があっても気が付かないということに成りかねないので、非常に重要です。
 
@@ -438,6 +418,8 @@ AzureDiagnostics
 
 ## 最後に
 
+Key Vault は、
 最後に、注意すべき点を１つ。Key Vaultのセキュリティが高いからと言って、すべての設定情報を Key Vaultに入れるのはアンチパターンです。セキュリティは、アクセスが限定され監査が有効なことで保たれており、全部をKey Vaultに入れてしまうと、その前提が崩れてしまいます。センシティブ情報だけをKey Vaultに入れてください。
+
 
 
