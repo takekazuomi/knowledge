@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>シグマUPDATED!</title>
+    <link>https://sigmactwwwupdated.z11.web.core.windows.net/</link>
+    <description>Recent content on シグマUPDATED!</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja-JP</language>
+    <copyright>Sigma Consulting Co.,Ltd. All rights reserved.</copyright>
+    <lastBuildDate>Sat, 24 Aug 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://sigmactwwwupdated.z11.web.core.windows.net/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Requirments</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/installation/requirments/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/installation/requirments/</guid>
+      <description>Thanks to the simplicity of Hugo, this page is as empty as this theme needs requirements.
+Just download latest version of Hugo binary (&amp;gt; 0.53) for your OS (Windows, Linux, Mac) : it&amp;rsquo;s that simple.</description>
+    </item>
+    
+    <item>
+      <title>Installation</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/installation/install/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/installation/install/</guid>
+      <description>The following steps are here to help you initialize your new website. If you don&amp;rsquo;t know Hugo at all, we strongly suggest you learn more about it by following this great documentation for beginners.
+Create your project Hugo provides a new command to create a new website.
+hugo new site &amp;lt;new_project&amp;gt;  Install the theme Install the Doc-List theme by following this documentation
+This theme&amp;rsquo;s repository is: https://github.com/themefisher/dot-hugo-documentation-theme.git
+Alternatively, you can download the theme as .</description>
+    </item>
+    
+    <item>
+      <title>Configuration</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/installation/configuration/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/installation/configuration/</guid>
+      <description>Global site parameters On top of Hugo global configuration, Doc-list lets you define the following parameters in your config.toml (here, values are default).
+Note that some of these parameters are explained in details in other sections of this documentation.
+[params] # Prefix URL to edit current page. # Useful to give opportunity to people to create merge request for your doc. # See the config.toml file from this documentation site to have an example.</description>
+    </item>
+    
+    <item>
+      <title>Hugoカスタマイズ方法まとめ</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/hugo/howto/</link>
+      <pubDate>Sat, 24 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/hugo/howto/</guid>
+      <description>開発の進め方  Hugoでサイトを作る場合、「layouts」(=HTML)で画面を構成するテンプレートを作り、「content」(=markdown)に記事をつくる2段構成になる。 「layouts」内直下の index.htmlがトップページ。 Front MatterがMarkdownで作成する記事のメタ部分  テンプレートの基本構造  layoutsフォルダ配下にある layouts/_default/baseof.html がTOPと一覧のベース layouts/partial の部品を呼び出している テンプレートの種類と呼び出し順　https://maku77.github.io/hugo/layout/template-types.html 記事詳細に関しては、layouts/_default/single.html  Section  特定の階層のTOP(１階層目TOP、２階層目TOP) 下記のファイルの内、最初に見つかったテンプレートファイルがセクションテンプレートとして使用されます。
+ /layouts/section/＜セクション名＞.html
+ /layouts/＜セクション名＞/list.html
+ /layouts/_default/section.html
+ /layouts/_default/list.html
+ /themes/＜テーマ名＞/layouts/section/＜セクション名＞.html
+ /themes/＜テーマ名＞/layouts/＜セクション名＞/list.html
+ /themes/＜テーマ名＞/layouts/_default/section.html
+ /themes/＜テーマ名＞/layouts/_default/list.html
+  partials  layouts/partial/head.html がヘッダ情報 layouts/partial/footer.html がフッタ情報 layouts/partial/banner.html がif .IsHomeの時だけ呼ばれる実装に今回なっているヒーローイメージ部分  &amp;lt;!DOCTYPE html&amp;gt; &amp;lt;html lang=&amp;quot;{{ with .Site.LanguageCode }}{{ . }}{{ else }}en-US{{ end }}&amp;quot;&amp;gt; {{- partial &amp;quot;head.html&amp;quot; . -}} &amp;lt;body&amp;gt; {{ if .</description>
+    </item>
+    
+    <item>
+      <title>Azure上でセキュア・アプリケーションを作るベストプラクティスを突き詰め続ける</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/azure/pci-dss-azure/</link>
+      <pubDate>Sun, 18 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/azure/pci-dss-azure/</guid>
+      <description>ベストプラクティスを突き詰め続ける 本稿では、Azure 上でアプリケーションを構築する開発者向け(元々は社内向け)に、セキュア・アプリケーションを構築する際のベストプラクティス的な内容をアップデートし続けていく事を目指しています。 特にこだわっていることとしては、PaaS、サーバーレスを使いこなし、元来人力で行う必要があったセキュリティ対策をより安全なクラウド側で実施していく事です。 セキュリティ対策の大半はクラウド側に任せて、アプリケーション内における対応に集中し、不完全な人力作業を排除し、開発に集中したいのです。
+セキュリティの基準については、PCI DSS 準拠が求められるクレジットカードイシュアのカード会員システムを Microsoft Azure 上で PaaS を中心に作った際の事例を基にしています。 PCI DSSは運用要件も大きく含むので、ここではテクノロジーカットにフォーカスして、PCI DSS 要件をユースケースとして紹介していきます。
+アプリケーションを構築する業界、システムの種別によっては、PCI DSS 要件ほど厳密に対応しないケースもあると思います。 業界の要求度合いによっては、このベストプラクティスが全てではないので、持ちうるリソースを考慮して、最適な実現方法を選択するようにしましょう。
+基本知識 まず基本知識について。話の流れとしては、「情報セキュリティの定義」、「クラウド上におけるセキュリティの利点」、「ブループリント」に触れながら、PCI DSS 要件に対する Azure 上での技術選択を解説していきます。
+情報セキュリティの定義　 情報セキュリティの定義は、頭⽂字を取って CIA として知られています。
+ 機密性 (Condentiality): 情報へのアクセスを認められた者だけが、アクセスできる状態とする 完全性 (Integrity): 情報が破壊、改ざん⼜は消去されていない状態を確保する 可⽤性 (Availability): 情報へのアクセスを認められた者が、必要時に中断することなく、情報及び関連資産にアクセスできる  この３つを軸に、Azure 上でどのように扱うかを説明して⾏きます。
+  図1x JIS Q 27002(ISO/IEC 27002)   クラウド上におけるセキュリティの利点 クラウド上におけるセキュリティの利点を理解することは、最も重要な基本知識の一つです。 この利点を活かすことができるかどうかで、プロジェクトの⾏く末は⼤きく変わってきます。
+一番根幹となる重要なポイントは共有責任モデル(Shared responsibility model)です。
+  図2 共有責任モデル   この図では、オンプレミスとクラウド(IaaS 中心、PaaS 中心)で Microsot(クラウドプロバイダー)と顧客側の責任がどのように共有されるか。また、利用モデルによって、責任分担がどのように変わるかをまとめています。</description>
+    </item>
+    
+    <item>
+      <title>Azure上でセキュア・アプリケーションを作るベストプラクティスを突き詰め続ける</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/azure/security/pci-dss-azure/</link>
+      <pubDate>Sun, 18 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/azure/security/pci-dss-azure/</guid>
+      <description>ベストプラクティスを突き詰め続けたい 本稿では、Azure 上でアプリケーションを構築する開発者向け(元々は社内向け)に、セキュア・アプリケーションを構築する際のベストプラクティス的な内容をアップデートし続けていく事を目指しています。 特にこだわっていることとしては、PaaS、サーバーレスを使いこなし、元来人力で行う必要があったセキュリティ対策をより安全なクラウド側で実施していく事です。 セキュリティ対策の大半はクラウド側に任せて、アプリケーション内における対応に集中し、不完全な人力作業を排除し、開発に集中したいのです。
+セキュリティの基準については、PCI DSS 準拠が求められるクレジットカードイシュアのカード会員システムを Microsoft Azure 上で PaaS を中心に作った際の事例を基にしています。 PCI DSSは運用要件も大きく含むので、ここではテクノロジーカットにフォーカスして、PCI DSS 要件をユースケースとして紹介していきます。
+アプリケーションを構築する業界、システムの種別によっては、PCI DSS 要件ほど厳密に対応しないケースもあると思います。 業界の要求度合いによっては、このベストプラクティスが全てではないので、持ちうるリソースを考慮して、最適な実現方法を選択するようにしましょう。
+基本知識 まず基本知識について。話の流れとしては、「情報セキュリティの定義」、「クラウド上におけるセキュリティの利点」、「ブループリント」に触れながら、PCI DSS 要件に対する Azure 上での技術選択を解説していきます。
+情報セキュリティの定義　 情報セキュリティの定義は、頭⽂字を取って CIA として知られています。
+ 機密性 (Condentiality): 情報へのアクセスを認められた者だけが、アクセスできる状態とする 完全性 (Integrity): 情報が破壊、改ざん⼜は消去されていない状態を確保する 可⽤性 (Availability): 情報へのアクセスを認められた者が、必要時に中断することなく、情報及び関連資産にアクセスできる  この３つを軸に、Azure 上でどのように扱うかを説明して⾏きます。
+  図1x JIS Q 27002(ISO/IEC 27002)   クラウド上におけるセキュリティの利点 クラウド上におけるセキュリティの利点を理解することは、最も重要な基本知識の一つです。 この利点を活かすことができるかどうかで、プロジェクトの⾏く末は⼤きく変わってきます。
+一番根幹となる重要なポイントは共有責任モデル(Shared responsibility model)です。
+  図2 共有責任モデル   この図では、オンプレミスとクラウド(IaaS 中心、PaaS 中心)で Microsot(クラウドプロバイダー)と顧客側の責任がどのように共有されるか。また、利用モデルによって、責任分担がどのように変わるかをまとめています。</description>
+    </item>
+    
+    <item>
+      <title>Customization</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/installation/customization/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/installation/customization/</guid>
+      <description>Doc-List has been built to be as configurable as possible.
+Change the logo In config.toml you will find a logo variable. you can change your logo there.
+The size of the logo will adapt automatically  Change the favicon If your favicon is a png, just drop off your image in your local static/images/ folder and name it favicon.png
+If you need to change this default behavior, create a new file in layouts/partials/ named head.</description>
+    </item>
+    
+    <item>
+      <title>Linux</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/features/linux/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/features/linux/</guid>
+      <description>Musce libero nunc, dignissim quis turpis quis, semper vehicula dolor. Suspendisse tincidunt consequat quam, ac posuere leo dapibus id. Cras fringilla convallis elit, at eleifend mi interam.
+A simple primary alert—check it out!  Nulla non sollicitudin. Morbi sit amet laoreet ipsum, vel pretium mi. Morbi varius, tellus in accumsan blandit, elit ligula eleifend velit, luctus mattis ante nulla condimentum nulla. Etiam vestibulum risus vel arcu elementum eleifend. Cras at dolor eget urna varius faucibus tempus in elit.</description>
+    </item>
+    
+    <item>
+      <title>Mac OS</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/features/mac/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/features/mac/</guid>
+      <description>Musce libero nunc, dignissim quis turpis quis, semper vehicula dolor. Suspendisse tincidunt consequat quam, ac posuere leo dapibus id. Cras fringilla convallis elit, at eleifend mi interam.
+A simple primary alert—check it out!  Nulla non sollicitudin. Morbi sit amet laoreet ipsum, vel pretium mi. Morbi varius, tellus in accumsan blandit, elit ligula eleifend velit, luctus mattis ante nulla condimentum nulla. Etiam vestibulum risus vel arcu elementum eleifend. Cras at dolor eget urna varius faucibus tempus in elit.</description>
+    </item>
+    
+    <item>
+      <title>Routing</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/features/routing/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/features/routing/</guid>
+      <description>Musce libero nunc, dignissim quis turpis quis, semper vehicula dolor. Suspendisse tincidunt consequat quam, ac posuere leo dapibus id. Cras fringilla convallis elit, at eleifend mi interam.
+A simple primary alert—check it out!  Nulla non sollicitudin. Morbi sit amet laoreet ipsum, vel pretium mi. Morbi varius, tellus in accumsan blandit, elit ligula eleifend velit, luctus mattis ante nulla condimentum nulla. Etiam vestibulum risus vel arcu elementum eleifend. Cras at dolor eget urna varius faucibus tempus in elit.</description>
+    </item>
+    
+    <item>
+      <title>Ubuntu</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/features/ubuntu/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/features/ubuntu/</guid>
+      <description>Musce libero nunc, dignissim quis turpis quis, semper vehicula dolor. Suspendisse tincidunt consequat quam, ac posuere leo dapibus id. Cras fringilla convallis elit, at eleifend mi interam.
+A simple primary alert—check it out!  Nulla non sollicitudin. Morbi sit amet laoreet ipsum, vel pretium mi. Morbi varius, tellus in accumsan blandit, elit ligula eleifend velit, luctus mattis ante nulla condimentum nulla. Etiam vestibulum risus vel arcu elementum eleifend. Cras at dolor eget urna varius faucibus tempus in elit.</description>
+    </item>
+    
+    <item>
+      <title>Windows</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/features/windows/</link>
+      <pubDate>Sat, 29 Dec 2018 11:02:05 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/features/windows/</guid>
+      <description>Musce libero nunc, dignissim quis turpis quis, semper vehicula dolor. Suspendisse tincidunt consequat quam, ac posuere leo dapibus id. Cras fringilla convallis elit, at eleifend mi interam.
+A simple primary alert—check it out!  Nulla non sollicitudin. Morbi sit amet laoreet ipsum, vel pretium mi. Morbi varius, tellus in accumsan blandit, elit ligula eleifend velit, luctus mattis ante nulla condimentum nulla. Etiam vestibulum risus vel arcu elementum eleifend. Cras at dolor eget urna varius faucibus tempus in elit.</description>
+    </item>
+    
+    <item>
+      <title>Contact</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/contact/_index.en/</link>
+      <pubDate>Thu, 27 Dec 2018 09:10:27 +0600</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/contact/_index.en/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Azure on シグマUPDATED!</title>
+    <link>https://sigmactwwwupdated.z11.web.core.windows.net/azure/</link>
+    <description>Recent content in Azure on シグマUPDATED!</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja-JP</language>
+    <copyright>Sigma Consulting Co.,Ltd. All rights reserved.</copyright>
+    <lastBuildDate>Mon, 29 Jul 2019 11:02:05 +0600</lastBuildDate>
+    
+	<atom:link href="https://sigmactwwwupdated.z11.web.core.windows.net/azure/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Azure上でセキュア・アプリケーションを作るベストプラクティスを突き詰め続ける</title>
+      <link>https://sigmactwwwupdated.z11.web.core.windows.net/azure/pci-dss-azure/</link>
+      <pubDate>Sun, 18 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://sigmactwwwupdated.z11.web.core.windows.net/azure/pci-dss-azure/</guid>
+      <description>ベストプラクティスを突き詰め続ける 本稿では、Azure 上でアプリケーションを構築する開発者向け(元々は社内向け)に、セキュア・アプリケーションを構築する際のベストプラクティス的な内容をアップデートし続けていく事を目指しています。 特にこだわっていることとしては、PaaS、サーバーレスを使いこなし、元来人力で行う必要があったセキュリティ対策をより安全なクラウド側で実施していく事です。 セキュリティ対策の大半はクラウド側に任せて、アプリケーション内における対応に集中し、不完全な人力作業を排除し、開発に集中したいのです。
+セキュリティの基準については、PCI DSS 準拠が求められるクレジットカードイシュアのカード会員システムを Microsoft Azure 上で PaaS を中心に作った際の事例を基にしています。 PCI DSSは運用要件も大きく含むので、ここではテクノロジーカットにフォーカスして、PCI DSS 要件をユースケースとして紹介していきます。
+アプリケーションを構築する業界、システムの種別によっては、PCI DSS 要件ほど厳密に対応しないケースもあると思います。 業界の要求度合いによっては、このベストプラクティスが全てではないので、持ちうるリソースを考慮して、最適な実現方法を選択するようにしましょう。
+基本知識 まず基本知識について。話の流れとしては、「情報セキュリティの定義」、「クラウド上におけるセキュリティの利点」、「ブループリント」に触れながら、PCI DSS 要件に対する Azure 上での技術選択を解説していきます。
+情報セキュリティの定義　 情報セキュリティの定義は、頭⽂字を取って CIA として知られています。
+ 機密性 (Condentiality): 情報へのアクセスを認められた者だけが、アクセスできる状態とする 完全性 (Integrity): 情報が破壊、改ざん⼜は消去されていない状態を確保する 可⽤性 (Availability): 情報へのアクセスを認められた者が、必要時に中断することなく、情報及び関連資産にアクセスできる  この３つを軸に、Azure 上でどのように扱うかを説明して⾏きます。
+  図1x JIS Q 27002(ISO/IEC 27002)   クラウド上におけるセキュリティの利点 クラウド上におけるセキュリティの利点を理解することは、最も重要な基本知識の一つです。 この利点を活かすことができるかどうかで、プロジェクトの⾏く末は⼤きく変わってきます。
+一番根幹となる重要なポイントは共有責任モデル(Shared responsibility model)です。
+  図2 共有責任モデル   この図では、オンプレミスとクラウド(IaaS 中心、PaaS 中心)で Microsot(クラウドプロバイダー)と顧客側の責任がどのように共有されるか。また、利用モデルによって、責任分担がどのように変わるかをまとめています。</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,102 @@
+DefaultContentLanguage = "ja"
+baseURL = "http://localhost:1313"
+theme = "dot-hugo-documentation-theme"
+
+# HTMLを生成するディレクトリ
+publishDir = "public/dev"
+# Google analytics
+googleAnalytics = "UA-139325091-1"
+
+[params]
+primaryColor = "#9320EB"
+secondaryColor = "#f9f9f9"
+textColor = "#636363"
+textColorDark = "#242738"
+whiteColor = "#ffffff"
+
+
+[blackfriday]
+  hrefTargetBlank = true
+
+[Languages]
+
+  # Japanese Language
+  [Languages.ja]
+  languageName = "ja"
+  weight = 1
+  languageCode = "ja-JP"
+  title = "シグマUPDATED!"
+  dateFormat = "2006 January 2"
+  home = "企業サイトへ"
+  logo = "シグマ知識庫(UPDATED!)"
+  copyright = "Sigma Consulting Co.,Ltd. All rights reserved."
+
+    # navigation
+    [Languages.ja.menu]
+            
+        
+      [[Languages.ja.menu.main]]
+        weight = 2
+        name = "カテゴリ"
+        url = "pages"
+        hasChildren = true
+
+          [[Languages.ja.menu.main]]
+          parent = "カテゴリ"
+          name = "Azure"
+          url = "azure"
+          weight = 1
+
+          [[Languages.ja.menu.main]]
+          parent = "カテゴリ"
+          name = "DevOps"
+          url = "devops"
+          weight = 2
+
+          [[Languages.ja.menu.main]]
+          parent = "カテゴリ"
+          name = "デザイン"
+          url = "design"
+          weight = 3
+
+          [[Languages.ja.menu.main]]
+          parent = "カテゴリ"
+          name = "マネジメント"
+          url = "management"
+          weight = 4
+
+
+
+
+    # banner
+    [Languages.ja.params.banner]
+      title = "UPDATED!"
+      description = "Azure、DevOps(開発、運用)、デザイン、マネジメント、文化等シグマコンサルティングで突き詰めている事の「更新情報」です。"
+      image = "images/banner.jpg"
+      placeholder = "２階層目のTOPにお試しで出している文章。"
+
+    # Topics
+    [Languages.ja.params.topics]
+      title = "トピックス"
+    
+    # call to action
+    [Languages.ja.params.cta]
+      enable = true
+      title = "是非一緒にお話ししてみませんか？"
+      description = "Azureのこと、ECのこと、DevOpsのこと、デザインのこと、PMのこと、話し合ってみませんか？"
+      btnText = "お問い合わせ"
+      btnURL = "どこに飛ばすか考え中"
+
+    # contact
+    [Languages.ja.params.contact]
+      title = "Got Any Questions"
+      content = "Submit the form and confirm your email address at <a class='text-primary' href='https://formspree.io/'>Formspree</a> Then add the following lines to contact page YAML Front Matter."
+
+    # footer social icon
+    [[Languages.ja.socialIcon]]
+      icon = "ti-facebook"
+      linkURL = "https://www.facebook.com/sigmact/"
+            
+    [[Languages.ja.socialIcon]]
+      icon = "ti-instagram"
+      linkURL = "https://www.instagram.com/sigmaconsulting/"
