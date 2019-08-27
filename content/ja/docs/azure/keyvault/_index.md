@@ -9,7 +9,7 @@ description: >
 
 ## はじめに
 
-本稿は、アプリケーションで使われるセンシティブ情報(パスワード等)の保護のベストプラクティスについて書いています。以下に、アプリケーションの設定情報を外部に保持する複数の方法について比較し、その後センシティブ情報をKey Vaultに保存する利点を論じています。そして、[Key Vault](https://docs.microsoft.com/en-in/azure/key-vault/key-vault-overview)の利点を構成する重要な点として、アクセス制御と、監査について記述します。
+本稿は、Microsoft Azureで、アプリケーションで使われるセンシティブ情報(パスワード等)の保護のベストプラクティスについて書いています。以下に、アプリケーションの設定情報を外部に保持する複数の方法について比較し、その後センシティブ情報をKey Vaultに保存する利点を論じています。そして、[Key Vault](https://docs.microsoft.com/en-in/azure/key-vault/key-vault-overview)の利点を構成する重要な点として、アクセス制御と、監査について記述します。
 
 ### 方式比較
 
@@ -53,17 +53,26 @@ description: >
 
 情報漏洩は、相変わらずセキュリティインシデントの上位にあり、[OWASP Top 10-2017/A3-Sensitive Data Exposure](https://www.owasp.org/index.php/Top_10-2017_A3-Sensitive_Data_Exposure) OWASP Cheat Sheet の、.NET securityでは、漏洩の防衛方法として設定ファイルの暗号化が推薦されています。また、CWEでも同様の指摘がされています。
 
-- OWASP Cheat Sheet の、.NET securityから
+- [OWASP Cheat Sheet/.NET security](https://cheatsheetseries.owasp.org/cheatsheets/DotNet_Security_Cheat_Sheet.html#general)から
 
-    > Encrypt sensitive parts of the web.config using aspnet_regiis -pe (command line help)).
-[OWASP Cheat Sheet/.NET security](https://cheatsheetseries.owasp.org/cheatsheets/DotNet_Security_Cheat_Sheet.html#general)
+    > "Lock down the config file. Encrypt sensitive parts of the web.config using aspnet_regiis -pe (command line help))." 
 
 - Common Weakness Enumeration (CWE) から
     - [CWE-13: ASP.NET Misconfiguration: Password in Configuration File](https://cwe.mitre.org/data/definitions/13.html)
     - [CWE-260: Password in Configuration File](https://cwe.mitre.org/data/definitions/260.html)
     - [CWE-312: Cleartext Storage of Sensitive Information](https://cwe.mitre.org/data/definitions/312.html)
 
-しかしながら、上記のOWASPやCWEで提案されている対策はクラウドでは古い方法と言わざる得ません、我々は、セキュリティを高めるために、センシティブ情報は分離し、Key Vault に入れることを推薦します。上記の推薦事項のように、Configの一部を暗号化する方法。[Encrypting Configuration File Sections Using Protected Configuration](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings-and-configuration-files#encrypting-configuration-file-sections-using-protected-configuration) や、その他の方法より優れていて、導入もそれほど難しくありません。
+上記、OWASPで紹介されてるのは、この[Protecting Connection Strings and Other Configuration Information (C#)](https://docs.microsoft.com/en-us/aspnet/web-forms/overview/data-access/advanced-data-access-scenarios/protecting-connection-strings-and-other-configuration-information-cs)方法です。リンク先では、RAS証明書でConfigの暗号化をしています。
+この方法をステップを簡単にまとめて、課題を明らかにしていきます。
+
+1. 証明書（秘密鍵含む）を作成する
+2. 証明書（秘密鍵含む）をIISのマシンに登録する
+3. 公開鍵でconfigを暗号化する
+4. .NET Frameworkの場合、Web.configで暗号を解く用に暗号化プロバイダを設定
+
+上記の手順を取る場合、秘密鍵を含んだ証明書の扱いをどうするかのが課題となります。作成した証明書の官理とIISのマシン（App Service）への登録の２つの場面が証明書の操作となり、その部分では適切なセキュリティコントロールが必要です。
+
+このように、上記のOWASPやCWEで提案されている対策はクラウドでは古い方法と言わざる得ません、我々は、セキュリティを高めるために、センシティブ情報は分離し、Key Vault に入れることを推薦します。上記の推薦事項のように、Configの一部を暗号化する方法より優れていて、導入もそれほど難しくありません。
 
 導入で少し複雑な部分は、[Azure Active Directry](https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-whatis)(以下 Azure AD)を使ったアクセス管理の部分([後述](#アクセス管理))ですが、一旦理解してしまえば、それほど高い敷居というわけではありません。Key Vault は、少しのコストで大きな効果があります。
 
@@ -73,6 +82,11 @@ description: >
 2. 暗号化：センシティブ情報は暗号化して保存する
 3. アクセス管理：センシティブ情報のアクセスは制限する
 4. 監査：センシティブ情報のアクセスを監査する
+
+{{< alert title="Memo" color="info" >}}
+App Serviceにおいて、設定情報の暗号化をするのは、幾つか障害がありますができないことはありません。どうしても必要なら、[Encrypt Configuration Sections in ASP.NET applications hosted on Cloud Services](https://code.msdn.microsoft.com/Encrypt-Configuration-5a8e8dfe)、[PKCS12ProtectedConfigurationProvider](https://github.com/kamranayub/PKCS12ProtectedConfigurationProvider/blob/master/README.md#azure)を参考にしてください。
+.NET Core では、暗号化をサポートした、IConfigurationProvider を作る必要があります。
+{{< /alert >}} 
 
 ## 設定情報の分離
 
