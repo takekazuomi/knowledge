@@ -77,7 +77,7 @@ whiteColor = "#ffffff"
 
     # Topics
     [Languages.ja.params.topics]
-      title = "トピックス"
+      title = "記事一覧"
     
     # call to action
     [Languages.ja.params.cta]

@@ -3,6 +3,7 @@ title: "Configuration"
 date: 2018-12-29T11:02:05+06:00
 type: "post"
 weight: 3
+type : "article"
 ---
 
 ### Global site parameters

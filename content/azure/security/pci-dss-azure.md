@@ -1,9 +1,9 @@
 ---
 title: "Azure上でセキュア・アプリケーションを作るベストプラクティスを突き詰め続ける"
-weight: 10
+weight: 1
 date: 2019-08-18
-description: >
-  PCI DSS要件をAzure PaaS上で実現した実例をもとに
+description: "PCI DSS要件をAzure PaaS上で実現した実例をもとに"
+type : "article"
 ---
 
 ## ベストプラクティスを突き詰め続けたい

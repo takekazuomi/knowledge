@@ -3,6 +3,7 @@ title: "Customization"
 date: 2018-12-29T11:02:05+06:00
 type: "post"
 author: "Somrat"
+type : "article"
 ---
 
 **Doc-List** has been built to be as configurable as possible.

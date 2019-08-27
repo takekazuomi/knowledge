@@ -4,9 +4,10 @@ authors: [
     ["Keiichi Hashimoto","images/author/k1hash.png"],
     ["Takekazu Omi","images/author/omi.png"]
 ]
-weight: 10
+weight: 1
 date: 2019-08-24
 description: Hugoのカスタマイズ方法をまとめる
+type : "article"
 keywords:
   - "word1"
   - "word2"
