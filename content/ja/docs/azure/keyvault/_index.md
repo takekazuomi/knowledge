@@ -86,6 +86,8 @@ description: >
 {{< alert title="Memo" color="info" >}}
 App Serviceにおいて、設定情報の暗号化をするのは、幾つか障害がありますができないことはありません。どうしても必要なら、[Encrypt Configuration Sections in ASP.NET applications hosted on Cloud Services](https://code.msdn.microsoft.com/Encrypt-Configuration-5a8e8dfe)、[PKCS12ProtectedConfigurationProvider](https://github.com/kamranayub/PKCS12ProtectedConfigurationProvider/blob/master/README.md#azure)を参考にしてください。
 .NET Core では、暗号化をサポートした、IConfigurationProvider を作る必要があります。
+
+この方法を取る場合でも、証明書の作成、リソースへの登録は Key Vault を使うことを推薦します。そうすれば、追加のセキュリティコントロール部分の難易度が下がります。
 {{< /alert >}} 
 
 ## 設定情報の分離
