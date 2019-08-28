@@ -1,12 +1,21 @@
 ---
 title: "Azure上でセキュア・アプリケーションを作るベストプラクティスを突き詰め続ける"
-weight: 1
+authors: [
+    ["Keiichi Hashimoto","images/author/k1hash.png"],
+    ["Takekazu Omi","images/author/omi.png"]
+]
+weight: 10
 date: 2019-08-18
-description: "PCI DSS要件をAzure PaaS上で実現した実例をもとに"
+description: PCI DSS要件をAzure PaaS上で実現した実例をもとに
 type : "article"
+keywords:
+  - "word1"
+  - "word2"
+  - "word3"
+eyecatch: "/images/hugo/hugo.png"
 ---
 
-## ベストプラクティスを突き詰め続けたい
+## ベストプラクティスを突き詰め続ける
 
 本稿では、Azure 上でアプリケーションを構築する開発者向け(元々は社内向け)に、セキュア・アプリケーションを構築する際のベストプラクティス的な内容をアップデートし続けていく事を目指しています。
 特にこだわっていることとしては、PaaS、サーバーレスを使いこなし、元来人力で行う必要があったセキュリティ対策をより安全なクラウド側で実施していく事です。
