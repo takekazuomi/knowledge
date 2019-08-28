@@ -1,10 +1,18 @@
 ---
 title: "セキュリティを高めるためにセンシティブ情報をどう管理するか"
 linkTitle: "Key Vault の利用"
+weight: 20
 date: 2019-08-22
 description: "KeyVaultを中心に"
 type : "article"
-weight: 2
+authors: [
+    ["Takekazu Omi","images/author/omi.png"]
+]
+keywords:
+  - "word1"
+  - "word2"
+  - "word3"
+eyecatch: "/images/hugo/hugo.png"
 ---
 
 ## はじめに
