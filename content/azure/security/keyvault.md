@@ -104,10 +104,7 @@ App Serviceにおいて、設定情報の暗号化をするのは、幾つか障
 
 この状態だとデプロイを自動化しても、CI/CDの設定をする時や、CI/CDでエラーになったときの調査でセンシティブ情報を見ることが出来てしまいます。CI/CDについては、参照、[Azure DevOps Projects を使用して既存のコードの CI/CD パイプラインを作成する](https://docs.microsoft.com/en-us/azure/devops-project/azure-devops-project-github)
 
-<figure id="config01">
-<img src="../images/config01.png" width="800" alt="アプリ構成一体">
-<figcaption>図１ アプリケーションと設定ファイルの関係</figcaption>
-</figure>
+{{< figure src="../images/config01.png" title="図１ アプリケーションと設定ファイルの関係" width="800" >}}
 
 設定ファイルの中には、アプリケーションを構成の補助情報、環境依存情報、センシティブ情報などが一体となって書かれていて、それが運用時にアクセス可能な状態になるというわけです。ここでは、アプリのデプロイと設定のデプロイが１つになっています。
 
@@ -115,7 +112,7 @@ App Serviceにおいて、設定情報の暗号化をするのは、幾つか障
 
 より進んだ方法として、[Azure App Service](https://docs.microsoft.com/en-in/azure/app-service/overview)では、[App Settings](https://docs.microsoft.com/en-us/azure/app-service/configure-common) が用意されています。App Settingsでは、Azure Portal や、API経由 (例：[Web Apps - Get Configuration](https://docs.microsoft.com/en-us/rest/api/appservice/webapps/getconfiguration))で設定が行われ、設定内容はアプリケーション内から環境変数として参照できます。この仕組を使うと、アプリケーションのデプロイと設定を別々に行うことができるというのが大きな違いです。これは、The Twelve Factors. の [III. Config Store/config in the environment](https://12factor.net/config) でもベストプラクティスに入っている考え方でもあります。
 
-<img src="../images/config02.png" width="600" alt="アプリ構成分離型">
+{{< figure src="../images/config02.png" title="図２ アプリケーションと構成情報の分離" width="600" >}}
 
 こうすると、本番や開発などの別々のWeb Siteに「App Settingsに環境固有の設定をする」、「アプリケーションをデプロイする」と設定、デプロイ別の手順で分けて実行することができます。また、App Settings の別の利点として、サービスが複数のインスタンスにスケールした時にも設定を一箇所で管理できるという点があります。これは、従来のシステムで要件して重要視されることは（あまり）ありませんでしたが、クラウドの利点を活かすためには重要な要件です。このようにアプリケーションと設定を分離し共有する方法は、[External Configuration Store pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/external-configuration-store) として知られています。
 
@@ -146,7 +143,7 @@ App Configuration には、設定ストアとしての豊富な機能の他、[M
 
 更に進めてセキュリティ面を考慮した場合、センシティブ情報の保存は、Key Vault の利用を推薦します。下図のようにセンシティブ情報を分離して扱うことで、アプリケーションの開発運用担当と、センシティブ情報を扱うセキュリティ担当を分けることができます。これは、App Service + App Settings では出来なかったことで、センシティブ情報を知る範囲を狭めるという意味で非常に効果的です。センシティブ情報を分離してKey Vaultに入れることによって、アプリケーションの開発運用チームはセンシティブ情報を扱わなくなり、チームに要求されるセキュリティ上の負担を軽減できます。この例では、３つに分けていますが、セキュリティ要件によってさらに分割することも検討してください。
 
-<img src="../images/config03.png" width="600" alt="アプリ構成センシティブ情報分離型">
+{{< figure src="../images/config03.png" title="図３ 構成情報でセンシティブ情報を分離" width="600" >}}
 
 {{% pageinfo color="primary" %}}
 **TODO:チームに要求されるセキュリティ上の負担**
@@ -332,13 +329,13 @@ Key Vault を安全性を高めるにはアクセスマネージメントを理�
 
 重要な点は上記２点しか有りません、そのうち１つは、アクセスは 2 つのプレーン、管理プレーン(management plane)とデータ プレーン(data plane)で管理されることです。そして、どちらのプレーンでも、認証にはAzure ADが使われます。
 
-<img src="../images/accessmodel.png" width="500" alt="アクセスモデル">
+{{< figure src="../images/accessmodel.png" title="図４ Key Vaultのアクセスモデル" width="500" >}}
 
 "管理プレーン" では コンテナーの作成と削除、アクセス ポリシーなど、Key Vault そのものを管理し、"データ プレーン" では、アクセス ポリシーに基づいて、どのプリンシパルが、キー コンテナーに格納されているデータを操作できるかを管理します。管理プレーンにアクセス権が無いと、コンテナの操作はできず、データプレーンにアクセス権が無いと（アクセス ポリシーで許可されていないと）データにはアクセスできません。データプレーンのアクセスポリシーを変更は、管理プレーンの権限で、アクセスポリシーの変更権とデータへのアクセス権とが別れているところが味噌になっています。
 
 前記のARM template で作成した結果がどうなってるのかを Azure Portal で確認してみます。まず アクセスポリシーを見ます。
 
-<img src="../images/access01.png" width="600" alt="アクセスモデル">
+{{< figure src="../images/access01.png" title="図５ アクセスモデル" width="600" >}}
 
 ここは、ARM template で下記の用に記述していたところです。記述通りに、作成したWeb Apps だけが一覧に出てきて、シークレットのgetとlistにチェックが入っています。
 
@@ -359,18 +356,18 @@ Key Vault を安全性を高めるにはアクセスマネージメントを理�
 
 Portalでシークレットの設定を見てみましょう、Portal にログインしているユーザーは、先程のaccessPoliciesのリストに載ってない別のユーザーで、アクセスは許可されていません。その場合、下記のような表示になります。
 
-<img src="../images/access02.png" width="600" alt="アクセスモデル">
+{{< figure src="../images/access02.png" title="図６ アクセスポリシー" width="600" >}}
 
 しかし、残念ながら、このポータルにアクセスしているユーザーは、共同作成者で、Key Vaultのアクセスポリシーを操作することができるので、アクセスポリシーを変更してデータプレーンへアクセスを許可するようい変更出来てしまいます。「	
 Web サイト共同作成者（Web Contributer）」などのロールでは、Key Vaultへのアクセスが許可されていないので、そのような操作をすることはできません。
 
 共同作成者とWeb サイト共同作成者で、どのように見えるのかを比較します。共同作成者では、App Service プラン、App Servce、Log Analytics ワークスペース、キー コンテナーの４つのリソースが見えます。
 
-<img src="../images/list01.png" width="600" alt="共同作成者">
+{{< figure src="../images/list01.png" title="図７ 共同作成者" width="600" >}}
 
 それに対して、Web サイト共同作成者では、App Service プラン と App Servce の２つだけです。
 
-<img src="../images/list02.png" width="600" alt="Web サイト共同作成者">
+{{< figure src="../images/list02.png" title="図８ Web サイト共同作成者" width="600" >}}
 
 これを見ると、Web サイト共同作成者は、完全に Key Vault が見えなくなっているのがわかります。RBACのロール周りは少々わかり辛いですが、セキュリティ面では非常に強力な武器になります。Web サイト共同作成者だけだと、Log Analyticsも見えなくってしまっているので、もう少し権限を追加する必要があります。
 
@@ -380,7 +377,7 @@ Web サイト共同作成者（Web Contributer）」などのロールでは、K
 2. Rd:開発運用者（デプロイ、ログ、メトリックス、構成情報へアクセス）
 3. Ra:アプリケーション
 
-<img src="../images/roles01.png" width="600" alt="ロール">
+{{< figure src="../images/roles01.png" title="図９ ロール分割例" width="600" >}}
 
 カスタムロールを使うとロール割当を効率的に行うことができます。
 
@@ -389,7 +386,7 @@ Web サイト共同作成者（Web Contributer）」などのロールでは、K
 Key Vaultの２つめ特徴は、[監査ログ](https://docs.microsoft.com/ja-jp/azure/key-vault/key-vault-logging#loganalytics)と監視([Azure Monitor Alerts](https://docs.microsoft.com/en-us/azure/azure-monitor/learn/tutorial-response))です。最新のKey Vaultでは、[Log Analytics（Azure Monitor Log)](https://docs.microsoft.com/ja-jp/azure/azure-monitor/insights/azure-key-vault#enable-key-vault-diagnostics-in-the-portal)に直接、Key Vaultのアクセスログを保存可能です。保存したログをKQLでクエリーしアラートを出す機能が用意されています。
 Azure PortalでのKey Vaultの監査ログの分析を支援する[Key Vault Analytics](https://azuremarketplace.microsoft.com/en-usrketplace/marketplace/apps/Microsoft.KeyVaultAnalyticsOMS?tab=Overview)ソリューションも用意されています。Key Vault Analyticsでは下記のように表示されます。
 
-<img src="../images/screen01.png" width="800" alt="Key Vault Analytics">
+{{< figure src="../images/screen01.png" title="図10 Key Vault Analytics" width="800" >}}
 
 監査ログをLog Analyticsに保存すると、KQLを使って、呼び出し元のIPの一覧を確認したり。
 
@@ -400,7 +397,7 @@ AzureDiagnostics
 | summarize AggregatedValue = count() by CallerIPAddress
 ```
 
-<img src="../images/screen02.png" width="800" alt="CallerIPAddress">
+{{< figure src="../images/screen02.png" title="図11 KQL CallerIPAddress" width="800" >}}
 
 エラーになった呼び出しを確認するなど自由度の高い参照ができます。
 
@@ -413,7 +410,7 @@ AzureDiagnostics
 | summarize AggregatedValue = count() by ResultSignature
 ```
 
-<img src="../images/screen03.png" width="800" alt="CallerIPAddress">
+{{< figure src="../images/screen03.png" title="図12 KQL httpStatusCode" width="800" >}}
 
 また、上記のクエリを少し加工（アグリゲーション部分を削除して）したクエリを使ってAlertを設定することもできます。[Respond to events with Azure Monitor Alerts](https://docs.microsoft.com/en-us/azure/azure-monitor/learn/tutorial-response)
 
@@ -426,7 +423,7 @@ AzureDiagnostics
     and not(OperationName == "Authentication" and httpStatusCode_d == 401)
 ```
 
-<img src="../images/screen08.png" width="800" alt="alert">
+{{< figure src="../images/screen08.png" title="図13 Azure Monitor Alert" width="800" >}}
 
 このような監査と監視の仕組みを使えるのことが、Key Vaultの大きな利点です。これによって高度なデータの保護を実現しています。
 
@@ -434,6 +431,3 @@ AzureDiagnostics
 
 Key Vault は、
 最後に、注意すべき点を１つ。Key Vaultのセキュリティが高いからと言って、すべての設定情報を Key Vaultに入れるのはアンチパターンです。セキュリティは、アクセスが限定され監査が有効なことで保たれており、全部をKey Vaultに入れてしまうと、その前提が崩れてしまいます。センシティブ情報だけをKey Vaultに入れてください。
-
-
-
